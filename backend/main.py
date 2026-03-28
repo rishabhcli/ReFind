@@ -11,11 +11,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette.sse import EventSourceResponse
 
-from backend.config import llm, HOST, PORT, FRONTEND_URL, DO_INFERENCE_API_KEY
+from backend.config import llm, HOST, PORT, FRONTEND_URL
 from backend.models.schemas import ChatRequest
 
-# Mock mode when no LLM API key is configured
-MOCK_MODE = not DO_INFERENCE_API_KEY
+# Mock mode when no LLM is configured
+MOCK_MODE = llm is None
 from backend.tools.search import (
     search_craigslist,
     search_facebook_marketplace,
@@ -27,10 +27,7 @@ from backend.agents.contact import draft_seller_message
 
 # ── Single orchestrator agent with all tools ─────────────────────
 
-orchestrator = rt.agent_node(
-    name="ReFind Shopping Assistant",
-    llm=llm,
-    system_message="""You are ReFind, an AI-powered secondhand shopping assistant.
+ORCHESTRATOR_SYSTEM = """You are ReFind, an AI-powered secondhand shopping assistant.
 
 You help users find the best deals on secondhand items across multiple marketplaces.
 
@@ -73,19 +70,25 @@ Would you like me to:
 - If no results match well, say so honestly
 - When the user wants to contact a seller, use draft_seller_message
 - Never contact sellers without explicit user approval
-- Keep responses concise and scannable""",
-    tool_nodes=(
-        search_craigslist,
-        search_facebook_marketplace,
-        search_offerup,
-        get_market_price,
-        score_deal,
-        draft_seller_message,
-    ),
-)
+- Keep responses concise and scannable"""
 
-# Create the flow
-flow = rt.Flow(name="ReFind Flow", entry_point=orchestrator)
+# Only create orchestrator + flow if an LLM is available
+flow = None
+if not MOCK_MODE:
+    orchestrator = rt.agent_node(
+        name="ReFind Shopping Assistant",
+        llm=llm,
+        system_message=ORCHESTRATOR_SYSTEM,
+        tool_nodes=(
+            search_craigslist,
+            search_facebook_marketplace,
+            search_offerup,
+            get_market_price,
+            score_deal,
+            draft_seller_message,
+        ),
+    )
+    flow = rt.Flow(name="ReFind Flow", entry_point=orchestrator)
 
 
 # ── FastAPI App ──────────────────────────────────────────────────

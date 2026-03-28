@@ -6,7 +6,7 @@ const hasWorkOS = !!process.env.WORKOS_CLIENT_ID;
 const workosProxy = authkitProxy({
   middlewareAuth: {
     enabled: true,
-    unauthenticatedPaths: ["/", "/api/auth/callback"],
+    unauthenticatedPaths: ["/", "/api/auth/callback", "/api/auth/sign-in", "/api/auth/sign-up"],
   },
 });
 
