@@ -1,11 +1,10 @@
 import { withAuth } from "@workos-inc/authkit-nextjs";
 import { redirect } from "next/navigation";
 import { ChatInterface } from "@/components/chat/ChatInterface";
-
-const hasWorkOS = !!process.env.WORKOS_CLIENT_ID;
+import { authEnabled } from "@/lib/auth-config";
 
 export default async function ChatPage() {
-  if (hasWorkOS) {
+  if (authEnabled) {
     const { user } = await withAuth({ ensureSignedIn: true });
     if (!user) {
       redirect("/");
@@ -13,6 +12,6 @@ export default async function ChatPage() {
     return <ChatInterface userId={user.id} />;
   }
 
-  // Dev mode without WorkOS
+  // Local/dev mode without WorkOS
   return <ChatInterface userId="dev-user" />;
 }

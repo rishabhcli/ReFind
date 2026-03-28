@@ -223,5 +223,5 @@ export function useReFindRuntime(
     convertMessage: (m) => m,
   });
 
-  return runtime;
+  return { runtime, isRunning, cancelRun: onCancel };
 }

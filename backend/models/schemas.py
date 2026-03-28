@@ -11,41 +11,40 @@ class Condition(str, Enum):
     POOR = "poor"
 
 
+class ListingCandidate(BaseModel):
+    """Unified listing shape — every adapter must return this."""
+    source: str                          # "ebay" | "mercari" | "craigslist" | "offerup" | "facebook" | "goodwill"
+    source_item_id: str
+    url: str
+    title: str
+    price: float
+    currency: str = "USD"
+    condition: str                       # "new" | "like_new" | "good" | "fair" | "poor"
+    image_urls: list[str] = Field(default_factory=list)
+    description: str = ""
+    seller_name: str = ""
+    seller_rating: float = 0.0          # 0–5
+    location_text: str = ""
+    posted_at: str = ""                 # ISO datetime string
+    is_local_pickup: bool = False
+    is_shipped: bool = True
+    # Filled by scorer:
+    deal_score: float = 0.0             # 0–100
+    fair_value_low: float = 0.0
+    fair_value_high: float = 0.0
+    recommended_offer: float = 0.0
+    value_gap_pct: float = 0.0          # how far below fair value (positive = good deal)
+
+
 class SearchConstraints(BaseModel):
     item: str = Field(description="What the user is looking for")
     max_price: Optional[float] = Field(None, description="Maximum budget")
     min_price: Optional[float] = Field(None, description="Minimum price")
-    condition: Optional[Condition] = Field(None, description="Desired condition")
+    condition: Optional[str] = Field(None, description="Desired condition")
     location: Optional[str] = Field(None, description="Preferred location/area")
+    zip_code: Optional[str] = Field(None, description="ZIP code for distance filtering")
     radius_miles: Optional[int] = Field(25, description="Search radius in miles")
     keywords: list[str] = Field(default_factory=list, description="Extra keywords")
-
-
-class Listing(BaseModel):
-    id: str
-    title: str
-    price: float
-    condition: Condition
-    location: str
-    seller_name: str
-    seller_rating: float = Field(ge=0, le=5)
-    description: str
-    image_url: Optional[str] = None
-    source: str  # "craigslist", "facebook", "offerup"
-    url: str
-    posted_date: str
-
-
-class DealScore(BaseModel):
-    listing_id: str
-    title: str
-    price: float
-    overall_score: int = Field(ge=0, le=100)
-    price_score: int = Field(ge=0, le=100)
-    condition_score: int = Field(ge=0, le=100)
-    proximity_score: int = Field(ge=0, le=100)
-    seller_score: int = Field(ge=0, le=100)
-    reasoning: str
 
 
 class ContactDraft(BaseModel):

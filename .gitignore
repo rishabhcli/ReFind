@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+venv/
+env/
+.venv/
+backend/venv/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+backend/.env
+
+# Frontend dependencies and build output
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.vercel/
+frontend/next-env.d.ts
+*.tsbuildinfo
+
+# Local tool/runtime state
+.railtracks/
+
+# Misc
+.DS_Store
+Thumbs.db
+*.log

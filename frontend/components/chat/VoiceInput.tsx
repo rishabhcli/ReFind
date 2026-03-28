@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { Mic, MicOff, Loader2 } from "lucide-react";
+import { useState, useCallback, useRef } from "react";
+import { Mic, MicOff } from "lucide-react";
 
 // Web Speech API types
 interface WebSpeechEvent {
@@ -24,14 +24,13 @@ interface VoiceInputProps {
 
 export function VoiceInput({ onTranscript, onInterim, disabled }: VoiceInputProps) {
   const [isListening, setIsListening] = useState(false);
-  const [isSupported, setIsSupported] = useState(false);
-  const recognitionRef = useRef<WebSpeechRecognition>(null);
-
-  useEffect(() => {
+  const [isSupported] = useState(() => {
+    if (typeof window === "undefined") return false;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    setIsSupported(!!SR);
-  }, []);
+    return !!SR;
+  });
+  const recognitionRef = useRef<WebSpeechRecognition>(null);
 
   const startListening = useCallback(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -99,11 +98,18 @@ export function VoiceInput({ onTranscript, onInterim, disabled }: VoiceInputProp
       type="button"
       onClick={toggle}
       disabled={disabled}
-      className={`rounded-md p-1.5 transition-colors ${
-        isListening
-          ? "bg-red-500 text-white animate-pulse"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-      }`}
+      className="interactive focus-ring flex items-center justify-center rounded-full"
+      style={{
+        width: '38px',
+        height: '38px',
+        background: 'rgba(255,255,255,0.05)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        color: isListening ? '#ef4444' : '#7878a0',
+        boxShadow: isListening
+          ? '0 0 0 4px rgba(239,68,68,0.2)'
+          : 'inset 0 1px 0 rgba(255,255,255,0.06)',
+        animation: isListening ? 'pulse-ring 1.2s ease-out infinite' : 'none',
+      }}
       title={isListening ? "Stop recording" : "Voice input"}
     >
       {isListening ? (

@@ -31,9 +31,9 @@ export const DraftMessageUI = makeAssistantToolUI<
 
     if (isRunning) {
       return (
-        <div className="my-2 w-full max-w-md rounded-xl border border-border bg-card p-4">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <Loader2 className="h-4 w-4 animate-spin text-accent" />
+        <div className="glass my-2 w-full" style={{ maxWidth: '440px', borderRadius: '18px', padding: '16px 18px' }}>
+          <div className="flex items-center gap-2" style={{ fontSize: '14px', fontWeight: 500, color: '#e2e2f0' }}>
+            <Loader2 className="h-4 w-4 animate-spin" style={{ color: '#6366f1' }} />
             Drafting message to seller…
           </div>
         </div>
@@ -65,7 +65,7 @@ function ContactApprovalCard({
 
   if (decision === "approved") {
     return (
-      <div className="my-2 flex w-full max-w-md items-center gap-2 rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-300">
+      <div className="my-2 flex w-full items-center gap-2" style={{ maxWidth: '440px', borderRadius: '14px', border: '1px solid rgba(16,185,129,0.25)', background: 'rgba(16,185,129,0.08)', padding: '12px 16px', fontSize: '14px', color: '#10b981' }}>
         <CheckCircle2 className="h-4 w-4" />
         Message to {sellerName} approved
       </div>
@@ -74,7 +74,7 @@ function ContactApprovalCard({
 
   if (decision === "declined") {
     return (
-      <div className="my-2 flex w-full max-w-md items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300">
+      <div className="my-2 flex w-full items-center gap-2" style={{ maxWidth: '440px', borderRadius: '14px', border: '1px solid rgba(239,68,68,0.25)', background: 'rgba(239,68,68,0.08)', padding: '12px 16px', fontSize: '14px', color: '#ef4444' }}>
         <XCircle className="h-4 w-4" />
         Message to {sellerName} declined
       </div>
@@ -82,24 +82,26 @@ function ContactApprovalCard({
   }
 
   return (
-    <div className="my-2 w-full max-w-md rounded-xl border border-border bg-card p-4">
-      <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-        <Mail className="h-4 w-4 text-accent" />
+    <div className="glass my-2 w-full" style={{ maxWidth: '440px', borderRadius: '18px', padding: '16px 18px' }}>
+      <div className="mb-2 flex items-center gap-2" style={{ fontSize: '14px', fontWeight: 500, color: '#e2e2f0' }}>
+        <Mail className="h-4 w-4" style={{ color: '#6366f1' }} />
         Message to {sellerName} — {listingTitle}
       </div>
-      <div className="mb-3 whitespace-pre-wrap rounded-lg bg-muted p-3 text-xs text-muted-foreground">
+      <div className="mb-3 whitespace-pre-wrap" style={{ borderRadius: '10px', background: 'rgba(255,255,255,0.04)', padding: '12px 14px', fontSize: '12px', color: '#7878a0', border: '1px solid rgba(255,255,255,0.06)' }}>
         {message || "Drafting message..."}
       </div>
       <div className="flex gap-2">
         <button
           onClick={() => setDecision("approved")}
-          className="rounded-lg bg-green-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-green-700"
+          className="interactive focus-ring"
+          style={{ borderRadius: '10px', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', padding: '8px 18px', fontSize: '12px', fontWeight: 500, color: '#10b981' }}
         >
           Approve & Send
         </button>
         <button
           onClick={() => setDecision("declined")}
-          className="rounded-lg border border-border px-4 py-1.5 text-xs font-medium hover:bg-muted"
+          className="interactive focus-ring"
+          style={{ borderRadius: '10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', padding: '8px 18px', fontSize: '12px', fontWeight: 500, color: '#7878a0' }}
         >
           Decline
         </button>

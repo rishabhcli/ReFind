@@ -1,3 +1,5 @@
+import type { CompleteAttachment } from "@assistant-ui/react";
+import type { ThreadUserMessagePart } from "@assistant-ui/react";
 import type { ThreadSummary } from "@/components/layout/Sidebar";
 
 const STORAGE_KEY = "refind_threads";
@@ -6,11 +8,13 @@ const MESSAGES_PREFIX = "refind_msgs_";
 export interface StoredMessage {
   role: "user" | "assistant";
   content: string;
+  attachments?: CompleteAttachment[];
   toolCalls?: Array<{
     toolCallId: string;
     toolName: string;
     args: Record<string, unknown>;
     result?: unknown;
+    content?: ThreadUserMessagePart[];
   }>;
   createdAt: number;
 }

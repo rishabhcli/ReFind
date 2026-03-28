@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Geist_Mono } from "next/font/google";
 import { AuthKitProvider } from "@workos-inc/authkit-nextjs/components";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const geistMono = Geist_Mono({
@@ -27,10 +28,17 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="h-full bg-background text-foreground">
-        <AuthKitProvider>{children}</AuthKitProvider>
+      <body className="h-full" style={{ background: '#05050a', color: '#e2e2f0' }}>
+        {/* Animated background blobs */}
+        <div className="bg-blob" aria-hidden="true">
+          <div className="blob-teal" />
+        </div>
+        <div className="relative" style={{ zIndex: 1, height: '100%' }}>
+          <AuthKitProvider>{children}</AuthKitProvider>
+        </div>
       </body>
     </html>
   );

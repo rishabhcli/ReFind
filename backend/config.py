@@ -1,8 +1,10 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 import railtracks as rt
 
-load_dotenv()
+# Load .env from the backend directory (next to this file)
+load_dotenv(Path(__file__).parent / ".env")
 
 # DigitalOcean Inference (OpenAI-compatible)
 DO_INFERENCE_API_KEY = os.getenv("DO_INFERENCE_API_KEY", "")
@@ -17,6 +19,9 @@ llm = rt.llm.OpenAICompatibleProvider(
     api_base=DO_INFERENCE_BASE_URL,
     api_key=DO_INFERENCE_API_KEY,
 )
+
+# SerpAPI (Google Shopping — for retail fair value)
+SERPAPI_KEY = os.getenv("SERPAPI_KEY", "")
 
 # Server config
 HOST = os.getenv("HOST", "0.0.0.0")

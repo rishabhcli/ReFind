@@ -1,7 +1,6 @@
 import { authkitProxy } from "@workos-inc/authkit-nextjs";
 import { NextRequest, NextResponse } from "next/server";
-
-const hasWorkOS = !!process.env.WORKOS_CLIENT_ID;
+import { authEnabled } from "@/lib/auth-config";
 
 const workosProxy = authkitProxy({
   middlewareAuth: {
@@ -10,12 +9,12 @@ const workosProxy = authkitProxy({
   },
 });
 
-// In dev without WorkOS credentials, pass all requests through
+// In local/dev mode with DEV_AUTH_ENABLED=true, pass all requests through.
 export default function proxy(
   request: NextRequest,
   context: Parameters<typeof workosProxy>[1],
 ) {
-  if (!hasWorkOS) {
+  if (!authEnabled) {
     return NextResponse.next();
   }
   return workosProxy(request, context);

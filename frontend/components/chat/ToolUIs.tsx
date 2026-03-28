@@ -1,21 +1,38 @@
 "use client";
 
-import { SearchProgressUI, FBSearchUI, OfferUpSearchUI } from "./SearchProgressCard";
-import { ScoreDealUI } from "./DealScoreCard";
+import {
+  MercariSearchUI,
+  CraigslistSearchUI,
+  GoodwillSearchUI,
+  OfferUpSearchUI,
+  FacebookSearchUI,
+  FBSearchUI,
+} from "./SearchProgressCard";
+import { ScoreDealUI, ShortlistResultUI } from "./DealScoreCard";
 import { DraftMessageUI } from "./ContactApproval";
 
 /**
  * Registers all tool UIs with assistant-ui.
- * Render this inside AssistantRuntimeProvider — each component
- * self-registers via makeAssistantToolUI / useAssistantToolUI.
+ * Must be rendered inside AssistantRuntimeProvider.
  */
 export function ToolUIs() {
   return (
     <>
-      <SearchProgressUI />
-      <FBSearchUI />
+      {/* Search source progress badges */}
+      <MercariSearchUI />
+      <CraigslistSearchUI />
+      <GoodwillSearchUI />
       <OfferUpSearchUI />
+      <FacebookSearchUI />
+      <FBSearchUI />
+
+      {/* Scoring status */}
       <ScoreDealUI />
+
+      {/* Full deal cards (one per top result) */}
+      <ShortlistResultUI />
+
+      {/* Seller contact approval */}
       <DraftMessageUI />
     </>
   );
