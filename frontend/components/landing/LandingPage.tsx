@@ -12,6 +12,7 @@ import {
   ArrowRight,
   CheckCircle2,
 } from "lucide-react";
+import { ScrollingImages } from "./ScrollingImages";
 
 interface LandingPageProps {
   signInUrl: string;
@@ -40,34 +41,43 @@ export function LandingPage({ signInUrl, signUpUrl }: LandingPageProps) {
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="flex flex-col items-center gap-6 px-6 pt-20 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-4 py-1.5 text-xs font-medium text-accent">
-          <Zap className="h-3 w-3" /> AI-Powered Secondhand Shopping
-        </div>
-        <h1 className="max-w-3xl text-5xl font-extrabold leading-tight tracking-tight sm:text-6xl">
-          Stop scrolling.
-          <br />
-          <span className="text-accent">Let AI find the deal.</span>
-        </h1>
-        <p className="max-w-xl text-lg text-muted-foreground">
-          ReFind is an AI shopping agent that searches Craigslist, Facebook Marketplace,
-          and OfferUp in parallel — comparing prices, scoring deals, and drafting seller
-          messages — all from a single chat.
-        </p>
-        <div className="flex gap-4 pt-2">
-          <a
-            href={signUpUrl}
-            className="flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground hover:opacity-90"
-          >
-            Start Shopping <ArrowRight className="h-4 w-4" />
-          </a>
-          <a
-            href="#how-it-works"
-            className="rounded-full border border-border px-6 py-3 text-sm font-medium hover:bg-muted"
-          >
-            See How It Works
-          </a>
+      {/* Hero with scrolling image background */}
+      <section className="relative overflow-hidden">
+        {/* Scrolling images layer */}
+        <ScrollingImages />
+
+        {/* Dark overlay */}
+        <div className="absolute inset-0 z-[1] bg-background/60" />
+
+        {/* Hero content */}
+        <div className="relative z-10 flex flex-col items-center gap-6 px-6 pt-20 pb-16 text-center">
+          <div className="liquid-glass inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium text-accent">
+            <Zap className="h-3 w-3" /> AI-Powered Secondhand Shopping
+          </div>
+          <h1 className="max-w-3xl text-5xl font-extrabold leading-tight tracking-tight sm:text-6xl">
+            Stop scrolling.
+            <br />
+            <span className="text-accent">Let AI find the deal.</span>
+          </h1>
+          <p className="max-w-xl text-lg text-muted-foreground">
+            ReFind is an AI shopping agent that searches Craigslist, Facebook Marketplace,
+            and OfferUp in parallel — comparing prices, scoring deals, and drafting seller
+            messages — all from a single chat.
+          </p>
+          <div className="flex gap-4 pt-2">
+            <a
+              href={signUpUrl}
+              className="flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground hover:opacity-90"
+            >
+              Start Shopping <ArrowRight className="h-4 w-4" />
+            </a>
+            <a
+              href="#how-it-works"
+              className="liquid-glass rounded-full px-6 py-3 text-sm font-medium"
+            >
+              See How It Works
+            </a>
+          </div>
         </div>
       </section>
 
