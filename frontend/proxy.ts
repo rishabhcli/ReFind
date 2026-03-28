@@ -5,7 +5,7 @@ import { authEnabled } from "@/lib/auth-config";
 const workosProxy = authkitProxy({
   middlewareAuth: {
     enabled: true,
-    unauthenticatedPaths: ["/", "/api/auth/callback"],
+    unauthenticatedPaths: ["/", "/api/auth/callback", "/api/auth/sign-in", "/api/auth/sign-up"],
   },
 });
 
@@ -21,5 +21,5 @@ export default function proxy(
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|images/).*)"],
 };

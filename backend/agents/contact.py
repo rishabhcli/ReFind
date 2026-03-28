@@ -1,11 +1,19 @@
 """Contact agent — drafts messages to sellers, always requiring user approval."""
 
 import json
-import railtracks as rt
 from backend.config import llm
 
+try:
+    import railtracks as rt
+except ModuleNotFoundError:
+    rt = None
 
-@rt.function_node
+
+def _function_node(func):
+    return rt.function_node(func) if rt is not None else func
+
+
+@_function_node
 def draft_seller_message(
     listing_title: str,
     seller_name: str,
@@ -33,10 +41,12 @@ def draft_seller_message(
     })
 
 
-contact_agent = rt.agent_node(
-    name="Seller Contact Agent",
-    llm=llm,
-    system_message="""You are a seller contact agent for ReFind.
+contact_agent = None
+if rt is not None and llm is not None:
+    contact_agent = rt.agent_node(
+        name="Seller Contact Agent",
+        llm=llm,
+        system_message="""You are a seller contact agent for ReFind.
 
 Your job is to help users reach out to sellers about listings they're interested in.
 
@@ -54,5 +64,5 @@ When asked to contact a seller:
 3. Wait for approval before proceeding
 
 Return the draft details so the UI can show an approval dialog.""",
-    tool_nodes=(draft_seller_message,),
-)
+        tool_nodes=(draft_seller_message,),
+    )
