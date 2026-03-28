@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
   useExternalStoreRuntime,
   type ThreadMessageLike,
@@ -48,6 +48,7 @@ export function useReFindRuntime(
   );
   const [isRunning, setIsRunning] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const pendingThreadRefreshRef = useRef(false);
 
   // Build or update the assistant message from accumulated parts
   const updateAssistant = useCallback(
@@ -88,7 +89,7 @@ export function useReFindRuntime(
         ];
         if (next.filter((m) => m.role === "user").length === 1) {
           updateThreadTitle(threadId, userText);
-          onThreadUpdate?.();
+          pendingThreadRefreshRef.current = true;
         }
         return next;
       });
@@ -209,6 +210,14 @@ export function useReFindRuntime(
     },
     [threadId, userId, onThreadUpdate, updateAssistant],
   );
+
+  useEffect(() => {
+    if (!pendingThreadRefreshRef.current || !onThreadUpdate) {
+      return;
+    }
+    pendingThreadRefreshRef.current = false;
+    onThreadUpdate();
+  }, [messages, onThreadUpdate]);
 
   const onCancel = useCallback(async () => {
     abortRef.current?.abort();
