@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, X, Trash2, Sparkles, LayoutGrid, MessageSquare, Square } from "lucide-react";
+import {
+  Plus,
+  X,
+  Trash2,
+  Sparkles,
+  LayoutGrid,
+  MessageSquare,
+  Square,
+} from "lucide-react";
 
 export interface ThreadSummary {
   id: string;
@@ -45,14 +53,13 @@ export function Sidebar({
 }: SidebarProps) {
   return (
     <>
-      {/* Mobile overlay */}
-      {open && (
+      {open ? (
         <div
           className="fixed inset-0 z-40 md:hidden"
-          style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
+          style={{ background: "rgba(0,0,0,0.62)", backdropFilter: "blur(4px)" }}
           onClick={onClose}
         />
-      )}
+      ) : null}
 
       <aside
         className={`
@@ -61,165 +68,145 @@ export function Sidebar({
           ${open ? "translate-x-0" : "-translate-x-full"}
         `}
         style={{
-          width: "256px",
-          minWidth: "256px",
-          background: "rgba(8,8,18,0.92)",
-          borderRight: "1px solid rgba(255,255,255,0.06)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
+          width: "272px",
+          minWidth: "272px",
+          background: "var(--sidebar)",
+          borderRight: "1px solid var(--border)",
         }}
       >
-        {/* Logo row */}
         <div
           className="flex items-center justify-between px-4"
-          style={{ height: "60px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+          style={{ height: "68px", borderBottom: "1px solid var(--border)" }}
         >
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
             <div
-              style={{
-                width: "30px",
-                height: "30px",
-                borderRadius: "9px",
-                background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "0 3px 10px rgba(99,102,241,0.45)",
-                flexShrink: 0,
-              }}
+              className="brand-mark flex items-center justify-center rounded-[14px]"
+              style={{ width: "34px", height: "34px" }}
             >
-              <Sparkles className="h-3.5 w-3.5 text-white" />
+              <Sparkles className="h-4 w-4" />
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <span
-                className="gradient-text"
-                style={{ fontSize: "18px", fontWeight: 700, letterSpacing: "-0.025em" }}
+                style={{
+                  fontSize: "19px",
+                  fontWeight: 800,
+                  letterSpacing: "-0.03em",
+                  color: "var(--foreground)",
+                }}
               >
                 ReFind
               </span>
               <span
                 className="pulse-green"
                 style={{
-                  width: "5px",
-                  height: "5px",
-                  borderRadius: "50%",
-                  background: "#10b981",
+                  width: "6px",
+                  height: "6px",
+                  borderRadius: "999px",
+                  background: "var(--success)",
                   display: "inline-block",
                 }}
               />
             </div>
           </div>
+
           <button
             onClick={onClose}
-            className="interactive rounded-lg p-1.5 md:hidden"
-            style={{ color: "#4a4a6a" }}
+            className="interactive rounded-xl p-1.5 md:hidden"
+            style={{ color: "var(--muted-foreground)" }}
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Nav links */}
-        <div className="px-3 pt-3 pb-1 space-y-1">
-          {/* New search button */}
+        <div className="space-y-2 px-3 pt-4 pb-2">
           <button
             onClick={onNewThread}
-            className="interactive focus-ring flex w-full items-center gap-2.5"
+            className="interactive focus-ring flex w-full items-center gap-2.5 rounded-[18px]"
             style={{
-              padding: "10px 14px",
-              borderRadius: "12px",
-              background: "rgba(99,102,241,0.1)",
-              border: "1px solid rgba(99,102,241,0.2)",
-              color: "#818cf8",
+              padding: "12px 14px",
+              background: "rgba(143, 165, 138, 0.12)",
+              border: "1px solid rgba(143, 165, 138, 0.24)",
+              color: "var(--accent-strong)",
               fontSize: "13.5px",
-              fontWeight: 500,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(99,102,241,0.18)";
-              e.currentTarget.style.borderColor = "rgba(99,102,241,0.35)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(99,102,241,0.1)";
-              e.currentTarget.style.borderColor = "rgba(99,102,241,0.2)";
+              fontWeight: 700,
             }}
           >
             <Plus className="h-4 w-4" />
             New search
           </button>
 
-          {/* Discover link */}
           <Link
             href="/discover"
-            className="interactive focus-ring flex w-full items-center gap-2.5"
+            className="interactive focus-ring flex w-full items-center gap-2.5 rounded-[18px]"
             style={{
-              padding: "10px 14px",
-              borderRadius: "12px",
+              padding: "12px 14px",
               background: "transparent",
               border: "1px solid transparent",
-              color: "#4a4a6a",
+              color: "var(--muted-foreground)",
               fontSize: "13.5px",
-              fontWeight: 500,
+              fontWeight: 600,
               textDecoration: "none",
-              display: "flex",
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)";
-              (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.07)";
-              (e.currentTarget as HTMLElement).style.color = "#7878a0";
+              e.currentTarget.style.background = "var(--card)";
+              e.currentTarget.style.borderColor = "var(--border)";
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.background = "transparent";
-              (e.currentTarget as HTMLElement).style.borderColor = "transparent";
-              (e.currentTarget as HTMLElement).style.color = "#4a4a6a";
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.borderColor = "transparent";
             }}
           >
             <LayoutGrid className="h-4 w-4" />
-            Discover trending
+            Discover feed
           </Link>
         </div>
 
-        {/* Divider + label */}
-        {threads.length > 0 && (
-          <div
-            className="px-4 pt-3 pb-1.5 flex items-center gap-2"
-            style={{ borderTop: "none" }}
-          >
-            <MessageSquare className="h-3 w-3" style={{ color: "#3a3a55" }} />
-            <span style={{ fontSize: "10px", fontWeight: 600, color: "#3a3a55", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+        {threads.length > 0 ? (
+          <div className="flex items-center gap-2 px-4 pt-4 pb-2">
+            <MessageSquare className="h-3.5 w-3.5" style={{ color: "var(--text-dim)" }} />
+            <span
+              style={{
+                fontSize: "10px",
+                fontWeight: 700,
+                color: "var(--text-dim)",
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+              }}
+            >
               Recent
             </span>
           </div>
-        )}
+        ) : null}
 
-        {/* Thread list */}
-        <nav className="flex-1 overflow-y-auto px-2 pb-2">
-          {threads.length === 0 && (
+        <nav className="flex-1 overflow-y-auto px-2 pb-3">
+          {threads.length === 0 ? (
             <p
-              className="px-3 py-8 text-center"
-              style={{ fontSize: "12px", color: "#3a3a55", lineHeight: "1.6" }}
+              className="px-4 py-10 text-center"
+              style={{ fontSize: "12px", color: "var(--muted-foreground)", lineHeight: 1.7 }}
             >
-              Start a search to begin
+              Start a search to create the first thread.
             </p>
-          )}
+          ) : null}
+
           {threads.map((thread) => {
             const isActive = activeThreadId === thread.id;
+
             return (
               <div
                 key={thread.id}
-                className="group flex w-full items-center gap-2 interactive"
+                className="group flex w-full items-center gap-2"
                 style={{
-                  padding: "9px 12px",
-                  borderRadius: "10px",
-                  background: isActive ? "rgba(99,102,241,0.1)" : "transparent",
-                  border: isActive
-                    ? "1px solid rgba(99,102,241,0.2)"
-                    : "1px solid transparent",
-                  marginBottom: "1px",
-                  cursor: "pointer",
+                  padding: "10px 12px",
+                  borderRadius: "18px",
+                  background: isActive ? "var(--card-strong)" : "transparent",
+                  border: isActive ? "1px solid var(--border-strong)" : "1px solid transparent",
+                  marginBottom: "4px",
+                  boxShadow: isActive ? "var(--shadow-sm)" : "none",
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive) {
-                    e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
+                    e.currentTarget.style.background = "var(--card)";
+                    e.currentTarget.style.borderColor = "var(--border)";
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -234,86 +221,91 @@ export function Sidebar({
                   className="flex flex-1 flex-col truncate text-left"
                 >
                   <span
-                    className="truncate block"
+                    className="truncate"
                     style={{
-                      color: isActive ? "#c4c4f0" : "#8888a8",
+                      color: isActive ? "var(--foreground)" : "var(--card-foreground)",
                       fontSize: "13px",
-                      fontWeight: isActive ? 500 : 400,
-                      lineHeight: "1.4",
+                      fontWeight: isActive ? 700 : 600,
+                      lineHeight: 1.45,
                     }}
                   >
                     {thread.title}
                   </span>
-                  <span style={{ color: "#2e2e48", fontSize: "10.5px", marginTop: "1px" }}>
+                  <span
+                    style={{
+                      color: "var(--text-dim)",
+                      fontSize: "11px",
+                      marginTop: "2px",
+                    }}
+                  >
                     {timeAgo(thread.updatedAt)}
                   </span>
                 </button>
-                {onDeleteThread && (
+
+                {onDeleteThread ? (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onDeleteThread(thread.id);
                     }}
-                    className="hidden rounded-md p-1 group-hover:flex items-center justify-center interactive"
-                    style={{ color: "#4a4a6a", flexShrink: 0 }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = "#ef4444"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = "#4a4a6a"; }}
+                    className="hidden items-center justify-center rounded-xl p-1.5 group-hover:flex interactive"
+                    style={{ color: "var(--muted-foreground)", flexShrink: 0 }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = "var(--destructive)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = "var(--muted-foreground)";
+                    }}
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
-                )}
+                ) : null}
               </div>
             );
           })}
         </nav>
 
-        {/* Footer */}
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+        <div style={{ borderTop: "1px solid var(--border)", padding: "14px 12px 12px" }}>
           {onStopAll ? (
-            <div className="px-3 pt-3">
-              <button
-                type="button"
-                onClick={onStopAll}
-                disabled={!canStopAll}
-                className="interactive focus-ring flex w-full items-center justify-center gap-2 rounded-xl disabled:opacity-40"
-                style={{
-                  padding: "10px 14px",
-                  background: canStopAll ? "rgba(239,68,68,0.12)" : "rgba(255,255,255,0.04)",
-                  border: canStopAll
-                    ? "1px solid rgba(239,68,68,0.3)"
-                    : "1px solid rgba(255,255,255,0.08)",
-                  color: canStopAll ? "#fca5a5" : "#4a4a6a",
-                  fontSize: "12.5px",
-                  fontWeight: 500,
-                }}
-                title="Stop all workers"
-              >
-                <Square className="h-3.5 w-3.5" />
-                Stop all workers
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={onStopAll}
+              disabled={!canStopAll}
+              className="interactive focus-ring flex w-full items-center justify-center gap-2 rounded-[18px] disabled:opacity-45"
+              style={{
+                padding: "12px 14px",
+                background: canStopAll ? "rgba(201, 111, 98, 0.12)" : "var(--card)",
+                border: canStopAll
+                  ? "1px solid rgba(201, 111, 98, 0.28)"
+                  : "1px solid var(--border)",
+                color: canStopAll ? "var(--destructive)" : "var(--muted-foreground)",
+                fontSize: "12.5px",
+                fontWeight: 700,
+              }}
+              title="Stop all workers"
+            >
+              <Square className="h-3.5 w-3.5" />
+              Stop all workers
+            </button>
           ) : null}
 
-          <div
-            className="px-4 py-3 flex items-center justify-between"
-            style={{ borderTop: onStopAll ? "1px solid rgba(255,255,255,0.03)" : "none" }}
-          >
-            <span style={{ fontSize: "10.5px", color: "#2e2e48" }}>v0.1.0</span>
+          <div className="flex items-center justify-between px-2 pt-3">
+            <span style={{ fontSize: "11px", color: "var(--text-dim)" }}>v0.1.0</span>
             <div
               style={{
-                fontSize: "10px",
-                color: "#3a3a55",
                 display: "flex",
                 alignItems: "center",
-                gap: "4px",
+                gap: "6px",
+                fontSize: "11px",
+                color: "var(--muted-foreground)",
               }}
             >
               <span
                 style={{
-                  width: "4px",
-                  height: "4px",
-                  borderRadius: "50%",
-                  background: "#10b981",
+                  width: "6px",
+                  height: "6px",
+                  borderRadius: "999px",
+                  background: "var(--success)",
                   display: "inline-block",
                 }}
               />

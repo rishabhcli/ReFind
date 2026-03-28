@@ -21,12 +21,13 @@ interface LandingPageProps {
 
 export function LandingPage({ signInUrl, signUpUrl }: LandingPageProps) {
   return (
-    <div className="flex min-h-full flex-col overflow-y-auto">
-      {/* Nav */}
+    <div className="flex min-h-full flex-col overflow-y-auto bg-background text-foreground">
       <nav className="flex items-center justify-between border-b border-border px-6 py-4">
-        <div className="flex items-center gap-2">
-          <Search className="h-6 w-6 text-accent" />
-          <span className="text-xl font-bold tracking-tight">ReFind</span>
+        <div className="flex items-center gap-3">
+          <span className="brand-mark flex h-9 w-9 items-center justify-center rounded-[14px]">
+            <Search className="h-4 w-4" />
+          </span>
+          <span className="text-xl font-extrabold tracking-tight">ReFind</span>
         </div>
         <div className="flex items-center gap-3">
           <a href={signInUrl} className="text-sm text-muted-foreground hover:text-foreground">
@@ -41,18 +42,15 @@ export function LandingPage({ signInUrl, signUpUrl }: LandingPageProps) {
         </div>
       </nav>
 
-      {/* Hero with scrolling image background */}
-      <section className="relative overflow-hidden">
-        {/* Scrolling images layer */}
+      <section className="relative overflow-hidden border-b border-border">
         <ScrollingImages />
+        <div className="absolute inset-0 z-[1] bg-background/76" />
 
-        {/* Dark overlay */}
-        <div className="absolute inset-0 z-[1] bg-background/60" />
-
-        {/* Hero content */}
         <div className="relative z-10 flex flex-col items-center gap-6 px-6 pt-20 pb-16 text-center">
-          <div className="liquid-glass inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium text-accent">
-            <Zap className="h-3 w-3" /> AI-Powered Secondhand Shopping
+          <div className="rounded-full border border-[var(--border-strong)] bg-[var(--card)] px-4 py-1.5 text-xs font-medium text-accent shadow-sm">
+            <span className="inline-flex items-center gap-2">
+              <Zap className="h-3 w-3" /> AI-Powered Secondhand Shopping
+            </span>
           </div>
           <h1 className="max-w-3xl text-5xl font-extrabold leading-tight tracking-tight sm:text-6xl">
             Stop scrolling.
@@ -60,9 +58,8 @@ export function LandingPage({ signInUrl, signUpUrl }: LandingPageProps) {
             <span className="text-accent">Let AI find the deal.</span>
           </h1>
           <p className="max-w-xl text-lg text-muted-foreground">
-            ReFind is an AI shopping agent that searches Craigslist, Facebook Marketplace,
-            and OfferUp in parallel — comparing prices, scoring deals, and drafting seller
-            messages — all from a single chat.
+            ReFind searches Craigslist, Facebook Marketplace, and OfferUp in parallel,
+            compares price and condition, and drafts seller messages from one chat interface.
           </p>
           <div className="flex gap-4 pt-2">
             <a
@@ -73,7 +70,7 @@ export function LandingPage({ signInUrl, signUpUrl }: LandingPageProps) {
             </a>
             <a
               href="#how-it-works"
-              className="liquid-glass rounded-full px-6 py-3 text-sm font-medium"
+              className="rounded-full border border-[var(--border-strong)] bg-card px-6 py-3 text-sm font-medium text-foreground hover:bg-[var(--card-strong)]"
             >
               See How It Works
             </a>
@@ -81,10 +78,9 @@ export function LandingPage({ signInUrl, signUpUrl }: LandingPageProps) {
         </div>
       </section>
 
-      {/* Demo preview */}
-      <section className="flex justify-center px-6 pb-16">
+      <section className="flex justify-center px-6 py-16">
         <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-border bg-card shadow-lg">
-          <div className="flex items-center gap-2 border-b border-border bg-muted/50 px-4 py-2">
+          <div className="flex items-center gap-2 border-b border-border bg-[var(--background-elevated)] px-4 py-2">
             <div className="h-3 w-3 rounded-full bg-red-400" />
             <div className="h-3 w-3 rounded-full bg-yellow-400" />
             <div className="h-3 w-3 rounded-full bg-green-400" />
@@ -97,49 +93,73 @@ export function LandingPage({ signInUrl, signUpUrl }: LandingPageProps) {
               </div>
             </div>
             <div className="flex gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-1 text-xs text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-                <CheckCircle2 className="h-3 w-3" /> Craigslist ✓
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-1 text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                <CheckCircle2 className="h-3 w-3" /> Facebook ✓
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-1 text-xs text-green-700 dark:bg-green-900/30 dark:text-green-300">
-                <CheckCircle2 className="h-3 w-3" /> OfferUp ✓
-              </span>
+              {[
+                { name: "Craigslist", dot: "#f97316" },
+                { name: "Facebook", dot: "#8b5cf6" },
+                { name: "OfferUp", dot: "#38bdf8" },
+              ].map((source) => (
+                <span
+                  key={source.name}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/8 px-2.5 py-1 text-xs text-emerald-500"
+                >
+                  <span
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ background: source.dot }}
+                  />
+                  <CheckCircle2 className="h-3 w-3" />
+                  {source.name}
+                </span>
+              ))}
             </div>
-            <div className="rounded-2xl rounded-bl-md bg-muted px-4 py-3">
-              <p className="font-semibold">🏆 Top Deal: IKEA Sectional — $120 (Fair)</p>
-              <p className="text-muted-foreground">📍 Hoboken, NJ | ⭐ 3.8 | Deal Score: <strong>78/100</strong></p>
+            <div className="rounded-2xl rounded-bl-md bg-[var(--background-elevated)] px-4 py-3">
+              <p className="font-semibold">
+                Top Deal: IKEA Sectional — <span className="text-amber-500">$120</span> (Fair)
+              </p>
+              <p className="text-muted-foreground">
+                Hoboken, NJ | 3.8 seller rating | Deal Score: <strong>78/100</strong>
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* How it works */}
-      <section id="how-it-works" className="bg-muted/30 px-6 py-16">
+      <section id="how-it-works" className="bg-[var(--background-elevated)] px-6 py-16">
         <h2 className="mb-12 text-center text-3xl font-bold">How It Works</h2>
         <div className="mx-auto grid max-w-4xl grid-cols-1 gap-8 sm:grid-cols-3">
-          <Step number={1} icon={<MessageSquare />} title="Describe It" desc="Type or speak what you're looking for — item, budget, location, condition." />
-          <Step number={2} icon={<Globe />} title="Agents Search" desc="Multiple AI agents search Craigslist, Facebook Marketplace, and OfferUp in parallel." />
-          <Step number={3} icon={<TrendingUp />} title="Ranked Results" desc="Deals are scored on price, condition, seller rating, and proximity. You pick the best." />
+          <Step
+            number={1}
+            icon={<MessageSquare />}
+            title="Describe It"
+            desc="Type or speak what you want, including price, condition, and location."
+          />
+          <Step
+            number={2}
+            icon={<Globe />}
+            title="Agents Search"
+            desc="Marketplace searches run in parallel so you get a broad secondhand snapshot fast."
+          />
+          <Step
+            number={3}
+            icon={<TrendingUp />}
+            title="Ranked Results"
+            desc="Deals are scored on value, condition, seller quality, and proximity before you decide."
+          />
         </div>
       </section>
 
-      {/* Features */}
       <section className="px-6 py-16">
         <h2 className="mb-12 text-center text-3xl font-bold">Built Different</h2>
         <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <Feature icon={<Mic />} title="Voice & Text" desc="Speak or type — switch anytime with a single tap." />
-          <Feature icon={<Zap />} title="Parallel Search" desc="Agents hit 3+ marketplaces simultaneously." />
-          <Feature icon={<Shield />} title="You Approve" desc="No messages sent to sellers without your explicit OK." />
-          <Feature icon={<TrendingUp />} title="Deal Scoring" desc="Objective 0-100 scores based on price, condition, seller, proximity." />
-          <Feature icon={<Users />} title="Contact Agent" desc="Auto-drafts polite seller messages with your offer." />
-          <Feature icon={<Search />} title="Smart Filtering" desc="Budget, condition, location — the agent understands natural language." />
+          <Feature icon={<Mic />} title="Voice & Text" desc="Switch between speaking and typing without changing the workflow." />
+          <Feature icon={<Zap />} title="Parallel Search" desc="Multiple agents search multiple marketplaces at the same time." />
+          <Feature icon={<Shield />} title="You Approve" desc="Nothing gets sent to sellers unless you explicitly approve it." />
+          <Feature icon={<TrendingUp />} title="Deal Scoring" desc="0-100 scoring combines pricing, condition, seller, and distance." />
+          <Feature icon={<Users />} title="Contact Agent" desc="Draft negotiation messages and outreach without starting from scratch." />
+          <Feature icon={<Search />} title="Smart Filtering" desc="Use natural language instead of filling out rigid marketplace forms." />
         </div>
       </section>
 
-      {/* Sponsor strip */}
-      <section className="border-t border-border bg-muted/20 px-6 py-10">
+      <section className="border-t border-border bg-[var(--background-elevated)] px-6 py-10">
         <p className="mb-6 text-center text-xs font-medium uppercase tracking-widest text-muted-foreground">
           Powered By
         </p>
@@ -153,7 +173,6 @@ export function LandingPage({ signInUrl, signUpUrl }: LandingPageProps) {
         </div>
       </section>
 
-      {/* CTA */}
       <section className="flex flex-col items-center gap-4 px-6 py-16 text-center">
         <h2 className="text-3xl font-bold">Ready to find your next deal?</h2>
         <p className="text-muted-foreground">No credit card. No sign-up required in demo mode.</p>
@@ -168,7 +187,17 @@ export function LandingPage({ signInUrl, signUpUrl }: LandingPageProps) {
   );
 }
 
-function Step({ number, icon, title, desc }: { number: number; icon: React.ReactNode; title: string; desc: string }) {
+function Step({
+  number,
+  icon,
+  title,
+  desc,
+}: {
+  number: number;
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+}) {
   return (
     <div className="flex flex-col items-center gap-3 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 text-accent">
@@ -185,7 +214,15 @@ function Step({ number, icon, title, desc }: { number: number; icon: React.React
   );
 }
 
-function Feature({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
+function Feature({
+  icon,
+  title,
+  desc,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+}) {
   return (
     <div className="rounded-xl border border-border bg-card p-5">
       <div className="mb-2 text-accent">{icon}</div>

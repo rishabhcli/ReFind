@@ -2,7 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { MessageCircle, Zap } from "lucide-react";
+import {
+  Bike,
+  MessageCircle,
+  Monitor,
+  Sofa,
+  Sparkles,
+} from "lucide-react";
+import {
+  PlatformLogo,
+  ImagePlaceholderIcon,
+} from "@/components/icons/PlatformIcons";
 
 interface Listing {
   source: string;
@@ -27,29 +37,114 @@ interface TrendingData {
 const CATEGORIES = ["Electronics", "Furniture", "Sports"] as const;
 type Category = (typeof CATEGORIES)[number];
 
-const COLUMN_CONFIG: Record<Category, { emoji: string; color: string; duration: number }> = {
-  Electronics: { emoji: "⚡",  color: "#818cf8", duration: 28 },
-  Furniture:   { emoji: "🛋️", color: "#fbbf24", duration: 38 },
-  Sports:      { emoji: "🚴", color: "#34d399", duration: 22 },
+const COLUMN_CONFIG: Record<
+  Category,
+  { icon: typeof Monitor; color: string; duration: number; label: string }
+> = {
+  Electronics: {
+    icon: Monitor,
+    color: "#95a9b8",
+    duration: 24,
+    label: "Audio, gaming, cameras",
+  },
+  Furniture: {
+    icon: Sofa,
+    color: "#c79f65",
+    duration: 34,
+    label: "Home pieces under budget",
+  },
+  Sports: {
+    icon: Bike,
+    color: "#8fa58a",
+    duration: 28,
+    label: "Bikes and gear in motion",
+  },
 };
 
-const SOURCE_COLORS: Record<string, string> = {
-  mercari: "#f43f5e", craigslist: "#f97316",
-  offerup: "#38bdf8", facebook: "#8b5cf6", goodwill: "#10b981",
+const SOURCE_STYLES: Record<
+  string,
+  { background: string; borderColor: string; color: string }
+> = {
+  mercari: {
+    background: "rgba(244, 63, 94, 0.12)",
+    borderColor: "rgba(244, 63, 94, 0.28)",
+    color: "#fb7185",
+  },
+  craigslist: {
+    background: "rgba(249, 115, 22, 0.12)",
+    borderColor: "rgba(249, 115, 22, 0.28)",
+    color: "#fb923c",
+  },
+  offerup: {
+    background: "rgba(14, 165, 233, 0.12)",
+    borderColor: "rgba(14, 165, 233, 0.28)",
+    color: "#38bdf8",
+  },
+  facebook: {
+    background: "rgba(139, 92, 246, 0.12)",
+    borderColor: "rgba(139, 92, 246, 0.28)",
+    color: "#a78bfa",
+  },
+  goodwill: {
+    background: "rgba(16, 185, 129, 0.12)",
+    borderColor: "rgba(16, 185, 129, 0.28)",
+    color: "#34d399",
+  },
 };
 
 const CONDITION_LABEL: Record<string, string> = {
-  new: "New", like_new: "Like New", good: "Good", fair: "Fair", poor: "Poor",
+  new: "New",
+  like_new: "Like New",
+  good: "Good",
+  fair: "Fair",
+  poor: "Poor",
 };
+
+function scoreStyles(score: number) {
+  if (score > 75) {
+    return {
+      background: "rgba(16, 185, 129, 0.18)",
+      borderColor: "rgba(16, 185, 129, 0.28)",
+      color: "#34d399",
+    };
+  }
+
+  if (score >= 50) {
+    return {
+      background: "rgba(245, 158, 11, 0.16)",
+      borderColor: "rgba(245, 158, 11, 0.28)",
+      color: "#fbbf24",
+    };
+  }
+
+  return {
+    background: "rgba(239, 68, 68, 0.16)",
+    borderColor: "rgba(239, 68, 68, 0.28)",
+    color: "#fca5a5",
+  };
+}
 
 function SkeletonCard() {
   return (
-    <div style={{ borderRadius: "14px", overflow: "hidden", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
-      <div style={{ height: "130px", background: "rgba(255,255,255,0.05)" }} />
-      <div style={{ padding: "10px 12px", display: "flex", flexDirection: "column", gap: "7px" }}>
-        <div style={{ height: "9px", background: "rgba(255,255,255,0.05)", borderRadius: "5px", width: "75%" }} />
-        <div style={{ height: "14px", background: "rgba(255,255,255,0.05)", borderRadius: "5px", width: "40%" }} />
-        <div style={{ height: "16px", background: "rgba(255,255,255,0.05)", borderRadius: "999px", width: "48px" }} />
+    <div
+      style={{
+        borderRadius: "22px",
+        overflow: "hidden",
+        background: "var(--card-strong)",
+        border: "1px solid var(--border)",
+        flexShrink: 0,
+        minHeight: "276px",
+        animation: "skeleton-pulse 1.8s ease-in-out infinite",
+      }}
+    >
+      <div style={{ height: "156px", background: "rgba(255,255,255,0.03)" }} />
+      <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: "10px" }}>
+        <div style={{ height: "11px", background: "rgba(255,255,255,0.05)", borderRadius: "999px", width: "76%" }} />
+        <div style={{ height: "11px", background: "rgba(255,255,255,0.05)", borderRadius: "999px", width: "58%" }} />
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "10px" }}>
+          <div style={{ height: "12px", background: "rgba(255,255,255,0.05)", borderRadius: "999px", width: "72px" }} />
+          <div style={{ height: "12px", background: "rgba(255,255,255,0.05)", borderRadius: "999px", width: "44px" }} />
+        </div>
       </div>
     </div>
   );
@@ -58,8 +153,13 @@ function SkeletonCard() {
 function SlotCard({ listing }: { listing: Listing }) {
   const [imgError, setImgError] = useState(false);
   const imgSrc = !imgError && listing.image_urls?.[0] ? listing.image_urls[0] : null;
-  const dotColor = SOURCE_COLORS[listing.source] ?? "#7878a0";
-  const condLabel = CONDITION_LABEL[listing.condition] ?? listing.condition;
+  const conditionLabel = CONDITION_LABEL[listing.condition] ?? listing.condition;
+  const sourceStyle = SOURCE_STYLES[listing.source] ?? {
+    background: "rgba(104, 114, 123, 0.18)",
+    borderColor: "rgba(104, 114, 123, 0.3)",
+    color: "#c7cdd2",
+  };
+  const badgeStyle = scoreStyles(listing.deal_score);
 
   return (
     <a
@@ -67,61 +167,161 @@ function SlotCard({ listing }: { listing: Listing }) {
       target="_blank"
       rel="noopener noreferrer"
       style={{
-        display: "block", borderRadius: "14px", overflow: "hidden",
-        background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)",
-        backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06)",
-        textDecoration: "none", flexShrink: 0, transition: "border-color 180ms, transform 180ms",
-      } as React.CSSProperties}
+        display: "block",
+        borderRadius: "22px",
+        overflow: "hidden",
+        background: "var(--card-strong)",
+        border: "1px solid var(--border)",
+        textDecoration: "none",
+        flexShrink: 0,
+        boxShadow: "var(--shadow-md)",
+        transition: "transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease",
+      }}
       onMouseEnter={(e) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.borderColor = "rgba(255,255,255,0.2)";
-        el.style.transform = "translateY(-2px)";
+        const el = e.currentTarget;
+        el.style.transform = "translateY(-4px)";
+        el.style.borderColor = "var(--border-strong)";
+        el.style.boxShadow = "var(--shadow-lg)";
       }}
       onMouseLeave={(e) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.borderColor = "rgba(255,255,255,0.08)";
+        const el = e.currentTarget;
         el.style.transform = "translateY(0)";
+        el.style.borderColor = "var(--border)";
+        el.style.boxShadow = "var(--shadow-md)";
       }}
     >
-      <div style={{ height: "130px", background: "rgba(255,255,255,0.03)", overflow: "hidden", position: "relative" }}>
-        {imgSrc
-          ? <img src={imgSrc} alt={listing.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={() => setImgError(true)} />
-          : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px", color: "rgba(255,255,255,0.08)" }}>🖼️</div>
-        }
-        <div style={{ position: "absolute", top: "7px", left: "7px" }}>
-          <span style={{ fontSize: "10px", fontWeight: 600, padding: "3px 8px", borderRadius: "999px", background: "rgba(5,5,10,0.7)", backdropFilter: "blur(8px)", color: "#e2e2f0", border: "1px solid rgba(255,255,255,0.1)", textTransform: "capitalize", display: "inline-flex", alignItems: "center", gap: "4px" }}>
-            <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: dotColor, display: "inline-block" }} />
-            {listing.source}
-          </span>
-        </div>
-        {listing.deal_score > 0 && (
-          <div style={{ position: "absolute", top: "7px", right: "7px" }}>
-            <span style={{ fontSize: "10px", fontWeight: 700, padding: "3px 8px", borderRadius: "999px", background: "rgba(5,5,10,0.7)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.1)", color: listing.deal_score >= 75 ? "#10b981" : listing.deal_score >= 50 ? "#f59e0b" : "#e2e2f0" }}>
-              {listing.deal_score}/100
-            </span>
+      <div
+        style={{
+          height: "156px",
+          background: "rgba(255,255,255,0.02)",
+          overflow: "hidden",
+          borderBottom: "1px solid var(--border)",
+        }}
+      >
+        {imgSrc ? (
+          <img
+            src={imgSrc}
+            alt={listing.title}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div
+            className="flex h-full items-center justify-center"
+            style={{ color: "var(--text-dim)" }}
+          >
+            <ImagePlaceholderIcon size={28} />
           </div>
         )}
       </div>
-      <div style={{ padding: "10px 12px 11px" }}>
-        <p style={{ fontSize: "12px", color: "#c4c4e0", lineHeight: "1.45", marginBottom: "6px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" } as React.CSSProperties}>
+
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+          padding: "14px",
+          minHeight: "120px",
+        }}
+      >
+        <div
+          style={{
+            minHeight: "44px",
+            fontSize: "13px",
+            lineHeight: 1.45,
+            color: "var(--card-foreground)",
+            fontWeight: 600,
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+        >
           {listing.title}
-        </p>
-        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "6px" }}>
-          <span style={{ fontSize: "16px", fontWeight: 700, color: "#f59e0b" }}>${listing.price.toFixed(0)}</span>
-          {listing.fair_value_high > 0 && (
-            <span style={{ fontSize: "10px", color: "#4a4a6a" }}>
-              ~${listing.fair_value_low.toFixed(0)}&ndash;${listing.fair_value_high.toFixed(0)}
-            </span>
-          )}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "5px", flexWrap: "wrap" }}>
-          {listing.condition && (
-            <span style={{ fontSize: "10px", padding: "2px 7px", borderRadius: "999px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.07)", color: "#6a6a8a" }}>{condLabel}</span>
-          )}
-          {listing.location_text && (
-            <span style={{ fontSize: "10px", color: "#4a4a6a" }}>📍 {listing.location_text}</span>
-          )}
+
+        <div className="flex items-center justify-between gap-3">
+          <span
+            style={{
+              fontSize: "20px",
+              fontWeight: 800,
+              color: "var(--amber)",
+              letterSpacing: "-0.03em",
+            }}
+          >
+            ${listing.price.toFixed(0)}
+          </span>
+
+          {listing.fair_value_high > 0 ? (
+            <span
+              style={{
+                fontSize: "11px",
+                color: "var(--muted-foreground)",
+                textAlign: "right",
+              }}
+            >
+              fair ${listing.fair_value_low.toFixed(0)}-{listing.fair_value_high.toFixed(0)}
+            </span>
+          ) : null}
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "10px",
+          }}
+        >
+          <div className="flex min-w-0 items-center gap-2">
+            <span
+              style={{
+                padding: "4px 10px",
+                borderRadius: "999px",
+                border: `1px solid ${sourceStyle.borderColor}`,
+                background: sourceStyle.background,
+                color: sourceStyle.color,
+                fontSize: "11px",
+                fontWeight: 700,
+                textTransform: "capitalize",
+                whiteSpace: "nowrap",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
+              }}
+            >
+              <PlatformLogo source={listing.source} size={14} />
+              {listing.source}
+            </span>
+
+            <span
+              className="truncate"
+              style={{
+                fontSize: "11px",
+                color: "var(--muted-foreground)",
+              }}
+            >
+              {conditionLabel}
+              {listing.location_text ? ` • ${listing.location_text}` : ""}
+            </span>
+          </div>
+
+          {listing.deal_score > 0 ? (
+            <span
+              style={{
+                padding: "4px 10px",
+                borderRadius: "999px",
+                border: `1px solid ${badgeStyle.borderColor}`,
+                background: badgeStyle.background,
+                color: badgeStyle.color,
+                fontSize: "11px",
+                fontWeight: 800,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {listing.deal_score}
+            </span>
+          ) : null}
         </div>
       </div>
     </a>
@@ -138,54 +338,186 @@ function SlotColumn({
   loading: boolean;
 }) {
   const config = COLUMN_CONFIG[category];
+  const Icon = config.icon;
   const [paused, setPaused] = useState(false);
+
   const copies = listings.length >= 6 ? 2 : listings.length >= 3 ? 3 : 4;
   const loopItems = listings.length > 0
     ? Array.from({ length: copies }, () => listings).flat()
     : [];
 
   return (
-    <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "8px", overflow: "hidden" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0, padding: "0 2px" }}>
-        <span style={{ fontSize: "13px" }}>{config.emoji}</span>
-        <span style={{ fontSize: "10.5px", fontWeight: 700, color: config.color, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-          {category}
-        </span>
-        {!loading && listings.length > 0 && (
-          <span style={{ fontSize: "10px", color: "#3a3a55" }}>{listings.length}</span>
-        )}
-      </div>
+    <div className="flex min-w-0 flex-1 flex-col gap-3">
       <div
-        style={{ flex: 1, overflow: "hidden", position: "relative", borderRadius: "10px" }}
+        className="surface-panel flex items-center justify-between rounded-[22px] px-4 py-3"
+        style={{ minHeight: "72px" }}
+      >
+        <div className="flex items-center gap-3">
+          <div
+            className="flex items-center justify-center rounded-[16px]"
+            style={{
+              width: "42px",
+              height: "42px",
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid var(--border)",
+              color: config.color,
+            }}
+          >
+            <Icon className="h-4 w-4" />
+          </div>
+
+          <div className="flex flex-col">
+            <span
+              style={{
+                fontSize: "13px",
+                fontWeight: 700,
+                color: "var(--foreground)",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              {category}
+            </span>
+            <span
+              style={{
+                fontSize: "11px",
+                color: "var(--muted-foreground)",
+              }}
+            >
+              {config.label}
+            </span>
+          </div>
+        </div>
+
+        {!loading && listings.length > 0 ? (
+          <span
+            style={{
+              fontSize: "11px",
+              fontWeight: 700,
+              color: "var(--text-dim)",
+            }}
+          >
+            {listings.length} live
+          </span>
+        ) : null}
+      </div>
+
+      <div
+        className="surface-panel-strong relative flex-1 overflow-hidden rounded-[26px] p-3"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "56px", background: "linear-gradient(to bottom, rgba(5,5,10,1) 0%, transparent 100%)", zIndex: 2, pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "56px", background: "linear-gradient(to top, rgba(5,5,10,1) 0%, transparent 100%)", zIndex: 2, pointerEvents: "none" }} />
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "22px",
+            background: "var(--card-strong)",
+            borderBottom: "1px solid rgba(255,255,255,0.03)",
+            zIndex: 3,
+            pointerEvents: "none",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: "22px",
+            background: "var(--card-strong)",
+            borderTop: "1px solid rgba(255,255,255,0.03)",
+            zIndex: 3,
+            pointerEvents: "none",
+          }}
+        />
+
         {loading ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)}
+          <div className="flex flex-col gap-3">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <SkeletonCard key={index} />
+            ))}
           </div>
         ) : loopItems.length > 0 ? (
           <div
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: "10px",
-              paddingBottom: "10px",
+              gap: "14px",
               animation: `slot-scroll-up ${config.duration}s linear infinite`,
               animationPlayState: paused ? "paused" : "running",
             }}
           >
-            {loopItems.map((listing, i) => (
-              <SlotCard key={`${listing.source_item_id}-${i}`} listing={listing} />
+            {loopItems.map((listing, index) => (
+              <SlotCard key={`${listing.source_item_id}-${index}`} listing={listing} />
             ))}
           </div>
         ) : (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "160px", fontSize: "11px", color: "#3a3a55", textAlign: "center", lineHeight: "1.6" }}>
+          <div
+            className="flex h-full items-center justify-center text-center"
+            style={{
+              minHeight: "220px",
+              color: "var(--muted-foreground)",
+              fontSize: "12px",
+              lineHeight: 1.7,
+            }}
+          >
             No listings available right now.
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function DiscoveryIntro() {
+  return (
+    <div
+      className="mx-auto flex w-full flex-col items-center gap-4 px-4 text-center"
+      style={{ maxWidth: "760px" }}
+    >
+      <div
+        className="brand-mark flex items-center justify-center rounded-[20px]"
+        style={{ width: "60px", height: "60px" }}
+      >
+        <Sparkles className="h-6 w-6" />
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <p
+          style={{
+            fontSize: "12px",
+            fontWeight: 700,
+            color: "var(--text-dim)",
+            textTransform: "uppercase",
+            letterSpacing: "0.14em",
+          }}
+        >
+          Discovery feed
+        </p>
+        <h1
+          style={{
+            fontSize: "clamp(2.5rem, 5vw, 4rem)",
+            fontWeight: 800,
+            letterSpacing: "-0.05em",
+            lineHeight: 1.03,
+            color: "var(--foreground)",
+          }}
+        >
+          Real secondhand listings, moving in real time.
+        </h1>
+        <p
+          style={{
+            fontSize: "16px",
+            lineHeight: 1.7,
+            color: "var(--muted-foreground)",
+          }}
+        >
+          Browse the live feed, then jump into chat to search for something specific and compare value across marketplaces.
+        </p>
       </div>
     </div>
   );
@@ -202,7 +534,6 @@ export function DiscoveryScreen({
   layout?: string;
   showChatCta?: boolean;
 }) {
-  // layout="embedded" is an alias for embedded={true}
   const isEmbedded = embedded || layout === "embedded";
   const [data, setData] = useState<TrendingData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -210,9 +541,12 @@ export function DiscoveryScreen({
 
   const fetchTrending = async (silent = false) => {
     if (!silent) setLoading(true);
+
     try {
       const res = await fetch("/api/trending");
-      if (res.ok) setData(await res.json());
+      if (res.ok) {
+        setData(await res.json());
+      }
     } finally {
       if (!silent) setLoading(false);
     }
@@ -221,60 +555,106 @@ export function DiscoveryScreen({
   useEffect(() => {
     fetchTrending();
     intervalRef.current = setInterval(() => fetchTrending(true), 30_000);
+
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden", color: "#e2e2f0", opacity: visible === false ? 0 : 1, pointerEvents: visible === false ? "none" : "auto" }}>
-      {!isEmbedded && (
-        <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px", height: "56px", borderBottom: "1px solid rgba(255,255,255,0.07)", background: "rgba(5,5,10,0.7)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", flexShrink: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(99,102,241,0.45)" }}>
-              <Zap className="h-3.5 w-3.5 text-white" />
+    <div
+      className="flex h-full flex-col overflow-hidden"
+      style={{
+        color: "var(--foreground)",
+        opacity: visible === false ? 0 : 1,
+        pointerEvents: visible === false ? "none" : "auto",
+      }}
+    >
+      {!isEmbedded ? (
+        <nav
+          className="flex items-center justify-between px-6"
+          style={{
+            minHeight: "64px",
+            borderBottom: "1px solid var(--border)",
+            background: "rgba(15, 17, 19, 0.96)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="brand-mark flex items-center justify-center rounded-[14px]"
+              style={{ width: "34px", height: "34px" }}
+            >
+              <Sparkles className="h-4 w-4" />
             </div>
-            <span className="gradient-text" style={{ fontSize: "18px", fontWeight: 700, letterSpacing: "-0.025em" }}>ReFind</span>
+            <span
+              style={{
+                fontSize: "18px",
+                fontWeight: 800,
+                color: "var(--foreground)",
+                letterSpacing: "-0.03em",
+              }}
+            >
+              ReFind
+            </span>
           </div>
-          {showChatCta && (
+
+          {showChatCta ? (
             <Link
               href="/chat"
-              style={{ display: "inline-flex", alignItems: "center", gap: "6px", borderRadius: "999px", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", padding: "8px 18px", fontSize: "13px", fontWeight: 600, color: "#fff", textDecoration: "none", boxShadow: "0 4px 14px rgba(99,102,241,0.45)" }}
+              className="interactive focus-ring flex items-center gap-2 rounded-[16px]"
+              style={{
+                padding: "10px 16px",
+                background: "var(--card-strong)",
+                border: "1px solid var(--border-strong)",
+                color: "var(--foreground)",
+                textDecoration: "none",
+                fontSize: "13px",
+                fontWeight: 700,
+                boxShadow: "var(--shadow-sm)",
+              }}
             >
-              <MessageCircle className="h-3.5 w-3.5" />
+              <MessageCircle className="h-4 w-4" />
               Start searching
             </Link>
-          )}
+          ) : null}
         </nav>
-      )}
-      {isEmbedded && (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px 4px", flexShrink: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ fontSize: "11px", fontWeight: 700, color: "#3a3a55", letterSpacing: "0.06em" }}>TRENDING NOW</span>
-            <span className="pulse-green" style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#10b981", display: "inline-block" }} />
+      ) : null}
+
+      <div
+        className="flex flex-1 flex-col"
+        style={{
+          padding: isEmbedded ? "0" : "28px 24px 24px",
+          gap: isEmbedded ? "0" : "24px",
+          minHeight: 0,
+        }}
+      >
+        {!isEmbedded ? <DiscoveryIntro /> : null}
+
+        <div
+          className="flex flex-1"
+          style={{
+            minHeight: 0,
+          }}
+        >
+          <div
+            className="grid w-full grid-cols-1 gap-4 lg:grid-cols-3"
+            style={{
+              minHeight: 0,
+            }}
+          >
+            {CATEGORIES.map((category) => (
+              <SlotColumn
+                key={category}
+                category={category}
+                listings={data?.[category] ?? []}
+                loading={loading}
+              />
+            ))}
           </div>
-          <span style={{ fontSize: "10px", color: "#2e2e48" }}>Live · 30s refresh</span>
         </div>
-      )}
-      <div style={{ flex: 1, display: "flex", gap: isEmbedded ? "10px" : "14px", padding: isEmbedded ? "0 14px" : "14px 24px 0", overflow: "hidden", minHeight: 0 }}>
-        {CATEGORIES.map((cat) => (
-          <SlotColumn
-            key={cat}
-            category={cat}
-            listings={data?.[cat] ?? []}
-            loading={loading}
-          />
-        ))}
       </div>
-      {!isEmbedded && showChatCta && (
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", flexShrink: 0 }}>
-          <span style={{ fontSize: "12px", color: "#3a3a55" }}>Not finding what you want?</span>
-          <Link href="/chat" style={{ display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "12px", fontWeight: 600, color: "#818cf8", textDecoration: "none" }}>
-            <MessageCircle className="h-3 w-3" />
-            Let AI search for you
-          </Link>
-        </div>
-      )}
     </div>
   );
 }

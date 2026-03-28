@@ -2,7 +2,7 @@
 
 import { useAuth } from "@workos-inc/authkit-nextjs/components";
 import { signOut } from "@workos-inc/authkit-nextjs";
-import { LogOut, Menu, Square } from "lucide-react";
+import { LogOut, Menu, Sparkles, Square } from "lucide-react";
 
 interface HeaderProps {
   onToggleSidebar?: () => void;
@@ -17,38 +17,57 @@ export function Header({ onToggleSidebar, canStopAll, onStopAll }: HeaderProps) 
     <header
       className="flex shrink-0 items-center justify-between px-4 md:hidden"
       style={{
-        height: '56px',
-        background: 'rgba(5,5,10,0.8)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        height: "62px",
+        background: "rgba(15, 17, 19, 0.96)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        borderBottom: "1px solid var(--border)",
       }}
     >
       <div className="flex items-center gap-3">
-        {onToggleSidebar && (
+        {onToggleSidebar ? (
           <button
             onClick={onToggleSidebar}
-            className="interactive focus-ring rounded-lg p-1.5"
-            style={{ color: '#7878a0' }}
+            className="interactive focus-ring rounded-xl p-2"
+            style={{ color: "var(--muted-foreground)" }}
           >
             <Menu className="h-5 w-5" />
           </button>
-        )}
-        <span className="gradient-text" style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.02em' }}>
-          ReFind
-        </span>
+        ) : null}
+
+        <div className="flex items-center gap-2.5">
+          <div
+            className="brand-mark flex items-center justify-center rounded-[12px]"
+            style={{ width: "30px", height: "30px" }}
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+          </div>
+          <span
+            style={{
+              fontSize: "19px",
+              fontWeight: 800,
+              letterSpacing: "-0.03em",
+              color: "var(--foreground)",
+            }}
+          >
+            ReFind
+          </span>
+        </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         {onStopAll ? (
           <button
             type="button"
             onClick={onStopAll}
             disabled={!canStopAll}
-            className="interactive focus-ring rounded-lg p-1.5 disabled:opacity-40"
+            className="interactive focus-ring rounded-xl p-2 disabled:opacity-45"
             style={{
-              color: canStopAll ? "#ef4444" : "#4b5563",
-              background: canStopAll ? "rgba(239,68,68,0.12)" : "transparent",
+              color: canStopAll ? "var(--destructive)" : "var(--text-dim)",
+              background: canStopAll ? "rgba(201, 111, 98, 0.12)" : "transparent",
+              border: canStopAll
+                ? "1px solid rgba(201, 111, 98, 0.24)"
+                : "1px solid transparent",
             }}
             title="Stop all workers"
           >
@@ -58,19 +77,26 @@ export function Header({ onToggleSidebar, canStopAll, onStopAll }: HeaderProps) 
 
         {user ? (
           <>
-          <span className="hidden sm:block" style={{ fontSize: '13px', color: '#7878a0' }}>
-            {user.email}
-          </span>
-          <form action={async () => { await signOut(); }}>
-            <button
-              type="submit"
-              className="interactive focus-ring rounded-lg p-1.5"
-              style={{ color: '#7878a0' }}
-              title="Sign out"
+            <span
+              className="hidden sm:block"
+              style={{ fontSize: "13px", color: "var(--muted-foreground)" }}
             >
-              <LogOut className="h-4 w-4" />
-            </button>
-          </form>
+              {user.email}
+            </span>
+            <form
+              action={async () => {
+                await signOut();
+              }}
+            >
+              <button
+                type="submit"
+                className="interactive focus-ring rounded-xl p-2"
+                style={{ color: "var(--muted-foreground)" }}
+                title="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </form>
           </>
         ) : null}
       </div>

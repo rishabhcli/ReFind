@@ -31,12 +31,8 @@ export default function RootLayout({
       className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="h-full" style={{ background: '#05050a', color: '#e2e2f0' }}>
-        {/* Animated background blobs */}
-        <div className="bg-blob" aria-hidden="true">
-          <div className="blob-teal" />
-        </div>
-        <div className="relative" style={{ zIndex: 1, height: '100%' }}>
+      <body className="h-full" style={{ background: "var(--background)", color: "var(--foreground)" }}>
+        <div className="relative" style={{ zIndex: 1, height: "100%" }}>
           <AuthKitProvider>{children}</AuthKitProvider>
         </div>
       </body>

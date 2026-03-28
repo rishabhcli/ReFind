@@ -7,10 +7,10 @@ import {
   Loader2,
   ExternalLink,
   MessageCircle,
-  MapPin,
   Star,
 } from "lucide-react";
 import { ToolScrollRail } from "./ToolScrollRail";
+import { PlatformLogo, MapPinIcon } from "@/components/icons/PlatformIcons";
 
 // ── score_deal status indicator ──────────────────────────────────
 export const ScoreDealUI = makeAssistantToolUI<
@@ -88,16 +88,6 @@ interface ListingCandidate {
   payment_notes?: string;
 }
 
-const SOURCE_DOT_COLORS: Record<string, string> = {
-  ebay:       "#e53238",
-  mercari:    "#f43f5e",
-  craigslist: "#f97316",
-  offerup:    "#38bdf8",
-  facebook:   "#8b5cf6",
-  goodwill:   "#10b981",
-  poshmark:   "#c93c8f",
-};
-
 const CONDITION_LABEL: Record<string, string> = {
   new: "New",
   like_new: "Like New",
@@ -135,7 +125,6 @@ function DimensionBar({ label, value, weight }: { label: string; value: number; 
 // ── shortlist_result full deal card ──────────────────────────────
 
 function ShortlistCard({ listing }: { listing: ListingCandidate }) {
-  const dotColor = SOURCE_DOT_COLORS[listing.source] ?? "#7878a0";
   const conditionLabel = CONDITION_LABEL[listing.condition] ?? listing.condition;
   const hasFairValue = listing.fair_value_high > 0;
   const hasRecommended = listing.recommended_offer > 0;
@@ -197,7 +186,7 @@ function ShortlistCard({ listing }: { listing: ListingCandidate }) {
                 gap: '5px',
               }}
             >
-              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: dotColor, display: 'inline-block' }} />
+              <PlatformLogo source={listing.source} size={14} />
               {listing.source}
             </span>
           </div>
@@ -215,7 +204,7 @@ function ShortlistCard({ listing }: { listing: ListingCandidate }) {
         {!imgSrc && (
           <div className="flex items-center gap-1.5">
             <span style={{ fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#e2e2f0', textTransform: 'capitalize', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: dotColor, display: 'inline-block' }} />
+              <PlatformLogo source={listing.source} size={14} />
               {listing.source}
             </span>
           </div>
@@ -270,7 +259,7 @@ function ShortlistCard({ listing }: { listing: ListingCandidate }) {
           )}
           {listing.location_text && (
             <span className="flex items-center gap-1">
-              <MapPin className="h-3 w-3" />
+              <MapPinIcon size={12} />
               {listing.location_text}
             </span>
           )}
