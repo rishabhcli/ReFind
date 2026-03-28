@@ -1,14 +1,17 @@
 "use client";
 
 import {
+  EbaySearchUI,
   MercariSearchUI,
   CraigslistSearchUI,
   GoodwillSearchUI,
   OfferUpSearchUI,
   FacebookSearchUI,
   FBSearchUI,
+  PoshmarkSearchUI,
+  BrowserEnricherUI,
 } from "./SearchProgressCard";
-import { ScoreDealUI, ShortlistResultUI } from "./DealScoreCard";
+import { ScoreDealUI, ShortlistResultUI, NegotiateStrategyUI } from "./DealScoreCard";
 import { DraftMessageUI } from "./ContactApproval";
 
 /**
@@ -18,21 +21,18 @@ import { DraftMessageUI } from "./ContactApproval";
 export function ToolUIs() {
   return (
     <>
-      {/* Search source progress badges */}
+      <EbaySearchUI />
       <MercariSearchUI />
       <CraigslistSearchUI />
       <GoodwillSearchUI />
-      <OfferUpSearchUI />
       <FacebookSearchUI />
       <FBSearchUI />
-
-      {/* Scoring status */}
+      <OfferUpSearchUI />
+      <PoshmarkSearchUI />
       <ScoreDealUI />
-
-      {/* Full deal cards (one per top result) */}
+      <BrowserEnricherUI />
       <ShortlistResultUI />
-
-      {/* Seller contact approval */}
+      <NegotiateStrategyUI />
       <DraftMessageUI />
     </>
   );

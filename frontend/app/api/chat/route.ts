@@ -1,37 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@workos-inc/authkit-nextjs";
-import { Ratelimit } from "@unkey/ratelimit";
 import { authEnabled } from "@/lib/auth-config";
 
 const AGENT_API_URL =
   process.env.NEXT_PUBLIC_AGENT_API_URL || "http://localhost:8000";
 
-// ── Unkey rate limiter ─────────────────────────────────────────
-// 10 requests per hour per user as required.
-// Falls back to allowing requests if Unkey is unreachable or not configured.
-const unkey = process.env.UNKEY_ROOT_KEY
-  ? new Ratelimit({
-      rootKey: process.env.UNKEY_ROOT_KEY,
-      namespace: "refind-chat",
-      limit: 10,
-      duration: "1h",
-      timeout: {
-        ms: 3000,
-        fallback: () => ({
-          success: true,
-          limit: 10,
-          reset: 0,
-          remaining: 10,
-        }),
-      },
-      onError: () => ({
-        success: true,
-        limit: 10,
-        remaining: 10,
-        reset: 0,
-      }),
-    })
-  : null;
+// ── In-memory rate limiter fallback ───────────────────────────────────
+// Use this fallback when a production-grade limiter is unavailable. This keeps
+// local/dev mode safe while avoiding hard runtime failures.
+const useFallbackRateLimit = true;
 
 // Fallback in-memory rate limiter when UNKEY_ROOT_KEY is not set
 const fallbackMap = new Map<string, { start: number; count: number }>();
@@ -39,7 +16,7 @@ const fallbackMap = new Map<string, { start: number; count: number }>();
 /**
  * Proxies chat requests to the Python agent backend.
  * - Requires WorkOS authentication when auth is enabled
- * - Rate-limited via Unkey (10 req/hour per user)
+ * - Rate-limited locally (10 req/hour per user)
  * - Streams SSE responses back to the client
  */
 export async function POST(req: NextRequest) {
@@ -54,21 +31,8 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Rate limit check ──────────────────────────────────────────
-  if (unkey) {
-    // Unkey cloud rate limiting
-    const rl = await unkey.limit(userId);
-    if (!rl.success) {
-      return NextResponse.json(
-        {
-          error: "Rate limit exceeded. Max 10 requests per hour.",
-          remaining: rl.remaining,
-          reset: rl.reset,
-        },
-        { status: 429 },
-      );
-    }
-  } else {
-    // Fallback in-memory rate limiter (dev / no Unkey key)
+  // Keep requests bounded while avoiding hard failures from external providers.
+  if (useFallbackRateLimit) {
     const now = Date.now();
     const window = fallbackMap.get(userId);
     if (window && now - window.start < 3_600_000 && window.count >= 10) {
