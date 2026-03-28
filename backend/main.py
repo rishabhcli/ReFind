@@ -6,7 +6,6 @@ import os
 import uuid
 from contextlib import asynccontextmanager
 
-import railtracks as rt
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette.sse import EventSourceResponse
@@ -23,6 +22,11 @@ from backend.tools.search import (
 )
 from backend.tools.pricing import get_market_price, score_deal
 from backend.agents.contact import draft_seller_message
+
+try:
+    import railtracks as rt
+except ModuleNotFoundError:
+    rt = None
 
 
 # ── Single orchestrator agent with all tools ─────────────────────
@@ -75,6 +79,8 @@ Would you like me to:
 # Only create orchestrator + flow if an LLM is available
 flow = None
 if not MOCK_MODE:
+    if rt is None:
+        raise RuntimeError("railtracks is required when an LLM provider is configured")
     orchestrator = rt.agent_node(
         name="ReFind Shopping Assistant",
         llm=llm,

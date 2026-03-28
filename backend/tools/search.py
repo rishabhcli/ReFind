@@ -2,7 +2,15 @@
 
 import json
 import random
-import railtracks as rt
+
+try:
+    import railtracks as rt
+except ModuleNotFoundError:
+    rt = None
+
+
+def _function_node(func):
+    return rt.function_node(func) if rt is not None else func
 
 # ── Mock listing database ──────────────────────────────────────────
 
@@ -60,21 +68,21 @@ def _filter_listings(
     return results
 
 
-@rt.function_node
+@_function_node
 def search_craigslist(query: str, location: str = "", max_price: float = 0) -> str:
     """Search Craigslist for secondhand listings matching the query."""
     results = _filter_listings("craigslist", query, location, max_price)
     return json.dumps({"source": "craigslist", "count": len(results), "listings": results})
 
 
-@rt.function_node
+@_function_node
 def search_facebook_marketplace(query: str, location: str = "", max_price: float = 0) -> str:
     """Search Facebook Marketplace for secondhand listings matching the query."""
     results = _filter_listings("facebook", query, location, max_price)
     return json.dumps({"source": "facebook", "count": len(results), "listings": results})
 
 
-@rt.function_node
+@_function_node
 def search_offerup(query: str, location: str = "", max_price: float = 0) -> str:
     """Search OfferUp for secondhand listings matching the query."""
     results = _filter_listings("offerup", query, location, max_price)

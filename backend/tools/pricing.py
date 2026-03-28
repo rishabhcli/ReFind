@@ -1,7 +1,15 @@
 """Price comparison and scoring tools."""
 
 import json
-import railtracks as rt
+
+try:
+    import railtracks as rt
+except ModuleNotFoundError:
+    rt = None
+
+
+def _function_node(func):
+    return rt.function_node(func) if rt is not None else func
 
 
 # Rough market price references for common items
@@ -20,7 +28,7 @@ MARKET_PRICES = {
 }
 
 
-@rt.function_node
+@_function_node
 def get_market_price(item: str) -> str:
     """Get typical market price ranges for a secondhand item."""
     item_lower = item.lower()
@@ -38,7 +46,7 @@ def get_market_price(item: str) -> str:
     })
 
 
-@rt.function_node
+@_function_node
 def score_deal(
     listing_title: str,
     listing_price: float,
