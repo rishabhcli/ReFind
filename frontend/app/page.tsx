@@ -1,25 +1,29 @@
 import { redirect } from "next/navigation";
-import { DiscoveryScreen } from "@/components/discovery/DiscoveryScreen";
+import { LandingPage } from "@/components/landing/LandingPage";
 import { authEnabled } from "@/lib/auth-config";
 
-const hasWorkOS = !!process.env.WORKOS_CLIENT_ID;
+const hasWorkOS = authEnabled;
 
 export default async function Home() {
-  if (!authEnabled) {
-    redirect("/chat");
+  if (!hasWorkOS) {
+    return <LandingPage signInUrl="/chat" signUpUrl="/chat" />;
   }
 
-  // If WorkOS is configured, redirect already-authenticated users to chat.
-  // Wrapped in try/catch in case middleware isn't covering this route yet.
-  if (hasWorkOS) {
-    try {
-      const { withAuth } = await import("@workos-inc/authkit-nextjs");
-      const { user } = await withAuth();
-      if (user) redirect("/chat");
-    } catch {
-      // Middleware not covering this route — fall through to discovery screen
+  // withAuth is middleware-dependent; guard the call so this route always renders a
+  // homepage even if middleware config is incomplete.
+  try {
+    const { withAuth } = await import("@workos-inc/authkit-nextjs");
+    const { user } = await withAuth();
+    if (user) {
+      redirect("/chat");
     }
+  } catch {
+    // Middleware not covering this route — keep rendering the homepage.
   }
 
-  return <DiscoveryScreen visible={true} />;
+  // Build auth URLs — use the sign-in/sign-up API route which handles cookie-based CSRF
+  const signInUrl = hasWorkOS ? "/api/auth/sign-in" : "/chat";
+  const signUpUrl = hasWorkOS ? "/api/auth/sign-up" : "/chat";
+
+  return <LandingPage signInUrl={signInUrl} signUpUrl={signUpUrl} />;
 }
