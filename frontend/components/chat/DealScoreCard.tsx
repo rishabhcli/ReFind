@@ -324,6 +324,7 @@ function ShortlistCard({ listing }: { listing: ListingCandidate }) {
           </button>
         </div>
       </div>
+    </div>
     </ToolScrollRail>
   );
 }
