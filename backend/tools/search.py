@@ -1,6 +1,5 @@
-"""Live marketplace search tools — powered by eBay Browse API.
+"""Live marketplace search tools — powered by real marketplace adapters.
 
-Replaces all mock data with real eBay listings.
 Keeps the same function signatures so the Railtracks scout agent
 and any other caller works without changes.
 """
@@ -8,7 +7,9 @@ and any other caller works without changes.
 import asyncio
 import json
 import railtracks as rt
-from backend.adapters.ebay import search_ebay
+from backend.adapters.craigslist import search_craigslist as _search_craigslist
+from backend.adapters.facebook import search_facebook as _search_facebook
+from backend.adapters.offerup import search_offerup as _search_offerup
 
 
 def _run_async(coro):
@@ -29,23 +30,23 @@ def _run_async(coro):
 
 @rt.function_node
 def search_craigslist(query: str, location: str = "", max_price: float = 0) -> str:
-    """Search for secondhand listings matching the query (eBay-backed)."""
-    listings = _run_async(search_ebay(query, max_price=max_price, limit=10))
+    """Search Craigslist for secondhand listings matching the query."""
+    listings = _run_async(_search_craigslist(query, max_price=max_price, zip_code=location))
     results = [l.model_dump() for l in listings]
-    return json.dumps({"source": "ebay", "count": len(results), "listings": results})
+    return json.dumps({"source": "craigslist", "count": len(results), "listings": results})
 
 
 @rt.function_node
 def search_facebook_marketplace(query: str, location: str = "", max_price: float = 0) -> str:
-    """Search for secondhand listings matching the query (eBay-backed)."""
-    listings = _run_async(search_ebay(query, max_price=max_price, limit=10))
+    """Search Facebook Marketplace for secondhand listings matching the query."""
+    listings = _run_async(_search_facebook(query, max_price=max_price))
     results = [l.model_dump() for l in listings]
-    return json.dumps({"source": "ebay", "count": len(results), "listings": results})
+    return json.dumps({"source": "facebook", "count": len(results), "listings": results})
 
 
 @rt.function_node
 def search_offerup(query: str, location: str = "", max_price: float = 0) -> str:
-    """Search for secondhand listings matching the query (eBay-backed)."""
-    listings = _run_async(search_ebay(query, max_price=max_price, limit=10))
+    """Search OfferUp for secondhand listings matching the query."""
+    listings = _run_async(_search_offerup(query, max_price=max_price))
     results = [l.model_dump() for l in listings]
-    return json.dumps({"source": "ebay", "count": len(results), "listings": results})
+    return json.dumps({"source": "offerup", "count": len(results), "listings": results})

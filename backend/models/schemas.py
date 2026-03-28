@@ -23,7 +23,11 @@ CONDITION_ALIASES: dict[str, str] = {
 
 class ListingCandidate(BaseModel):
     """Unified listing shape — every adapter must return this."""
+<<<<<<< Updated upstream
     source: str                          # "ebay" | "mercari" | "craigslist" | "offerup" | "facebook" | "goodwill" | "poshmark"
+=======
+    source: str                          # "mercari" | "craigslist" | "offerup" | "facebook" | "goodwill"
+>>>>>>> Stashed changes
     source_item_id: str
     url: str
     title: str

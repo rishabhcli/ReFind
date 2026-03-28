@@ -1,4 +1,4 @@
-"""Fair value estimation — SerpAPI Google Shopping + eBay sold items."""
+"""Fair value estimation — SerpAPI Google Shopping."""
 
 import httpx
 from backend.config import SERPAPI_KEY
