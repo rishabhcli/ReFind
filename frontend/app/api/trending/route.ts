@@ -50,6 +50,14 @@ const FALLBACK_TRENDING: TrendingResponse = {
   ],
 };
 
+function fallbackImage(category: string, title: string, idSeed: string) {
+  const slug = `${category.toLowerCase()} ${title.toLowerCase()} ${idSeed}`.replace(
+    /[^a-z0-9]+/gi,
+    "-"
+  );
+  return `https://picsum.photos/seed/${encodeURIComponent(slug)}/600/600`;
+}
+
 function makeFallback(
   source: string,
   sourceItemId: string,
@@ -65,9 +73,7 @@ function makeFallback(
     title,
     price,
     condition: "good",
-    image_urls: [
-      `https://placehold.co/600x600/111827/e5e7eb/png?text=${imageText}`,
-    ],
+    image_urls: [fallbackImage(imageText, title, sourceItemId)],
     location_text: locationText,
     deal_score: 78,
     fair_value_low: Math.max(price - 40, 10),

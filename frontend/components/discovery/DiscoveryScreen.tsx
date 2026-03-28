@@ -92,6 +92,52 @@ const SOURCE_STYLES: Record<
   },
 };
 
+const SOURCE_FALLBACK_IMAGES: Record<string, string> = {
+  ebay: "https://picsum.photos/seed/discovery-ebay-listing/600/600",
+  mercari: "https://picsum.photos/seed/discovery-mercari-listing/600/600",
+  craigslist: "https://picsum.photos/seed/discovery-craigslist-listing/600/600",
+  offerup: "https://picsum.photos/seed/discovery-offerup-listing/600/600",
+  facebook: "https://picsum.photos/seed/discovery-facebook-listing/600/600",
+  goodwill: "https://picsum.photos/seed/discovery-goodwill-listing/600/600",
+  poshmark: "https://picsum.photos/seed/discovery-poshmark-listing/600/600",
+};
+
+const LOCAL_FALLBACK_IMAGES: Record<string, string> = {
+  electronics: "/images/scroll/appliance-1.jpg",
+  furniture: "/images/scroll/furniture-1.jpg",
+  sports: "/images/scroll/car-1.jpg",
+  ebay: "/images/scroll/appliance-3.jpg",
+  mercari: "/images/scroll/appliance-4.jpg",
+  craigslist: "/images/scroll/furniture-2.jpg",
+  offerup: "/images/scroll/furniture-3.jpg",
+  facebook: "/images/scroll/car-3.jpg",
+  goodwill: "/images/scroll/car-5.jpg",
+  poshmark: "/images/scroll/furniture-4.jpg",
+  default: "/images/scroll/appliance-2.jpg",
+};
+
+const PLACEHOLDER_IMAGE_TEST = /placehold\.co|via\.placehold|dummyimage|placeholdit/i;
+
+function isValidImageUrl(value: string): boolean {
+  if (!value || !value.trim()) return false;
+  const trimmed = value.trim();
+  if (trimmed.startsWith("blob:") || trimmed.startsWith("data:")) return false;
+  if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) return false;
+  return true;
+}
+
+function normalizeImageCandidates(listing: Listing): string[] {
+  const candidates = listing.image_urls ?? [];
+  return candidates.filter(
+    (value) => typeof value === "string" && isValidImageUrl(value) && !PLACEHOLDER_IMAGE_TEST.test(value)
+  );
+}
+
+function localFallbackImage(listing: Listing): string {
+  if (LOCAL_FALLBACK_IMAGES[listing.source]) return LOCAL_FALLBACK_IMAGES[listing.source];
+  return LOCAL_FALLBACK_IMAGES.default;
+}
+
 const CONDITION_LABEL: Record<string, string> = {
   new: "New",
   like_new: "Like New",
@@ -151,8 +197,14 @@ function SkeletonCard() {
 }
 
 function SlotCard({ listing }: { listing: Listing }) {
-  const [imgError, setImgError] = useState(false);
-  const imgSrc = !imgError && listing.image_urls?.[0] ? listing.image_urls[0] : null;
+  const [imgIndex, setImgIndex] = useState(0);
+  const candidates = normalizeImageCandidates(listing);
+  const sourceFallback = SOURCE_FALLBACK_IMAGES[listing.source];
+  const imageSequence = [candidates[0], sourceFallback, localFallbackImage(listing)].filter(
+    (value, index, array) => Boolean(value) && array.indexOf(value) === index,
+  );
+  const shouldRenderImage = imgIndex < imageSequence.length;
+  const imgSrc = imageSequence[Math.min(imgIndex, imageSequence.length - 1)];
   const conditionLabel = CONDITION_LABEL[listing.condition] ?? listing.condition;
   const sourceStyle = SOURCE_STYLES[listing.source] ?? {
     background: "rgba(104, 114, 123, 0.18)",
@@ -198,12 +250,15 @@ function SlotCard({ listing }: { listing: Listing }) {
           borderBottom: "1px solid var(--border)",
         }}
       >
-        {imgSrc ? (
+        {shouldRenderImage && imgSrc ? (
           <img
             src={imgSrc}
             alt={listing.title}
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            onError={() => setImgError(true)}
+            onError={(e) => {
+              e.preventDefault();
+              setImgIndex((current) => Math.min(current + 1, imageSequence.length));
+            }}
           />
         ) : (
           <div

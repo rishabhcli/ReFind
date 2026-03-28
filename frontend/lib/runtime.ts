@@ -36,6 +36,12 @@ function storedToThreadMessages(stored: StoredMessage[]): ThreadMessageLike[] {
   }));
 }
 
+function searchPreviewImage(query: string): string {
+  const safeQuery = query.trim();
+  if (!safeQuery) return "/images/scroll/appliance-2.jpg";
+  return `https://source.unsplash.com/featured/1200x675/?${encodeURIComponent(safeQuery)}`;
+}
+
 // ── Runtime hook ─────────────────────────────────────────────────
 
 export function useReFindRuntime(
@@ -99,7 +105,11 @@ export function useReFindRuntime(
       abortRef.current = controller;
 
       // Accumulate content parts for the assistant message
-      let assistantText = "";
+      const safeQuery = userText.trim();
+      const previewText = safeQuery
+        ? `🔎 Finding deals for **${safeQuery}**...\n\n![${safeQuery}](${searchPreviewImage(safeQuery)})`
+        : "🔎 Finding deals...";
+      let assistantText = previewText;
       const toolCalls: Map<
         string,
         { toolCallId: string; toolName: string; args: Record<string, unknown>; result?: unknown }
@@ -116,6 +126,8 @@ export function useReFindRuntime(
         }
         return parts.length > 0 ? parts : [{ type: "text", text: "" }];
       };
+
+      updateAssistant(buildParts());
 
       try {
         const res = await fetch(CHAT_ENDPOINT, {

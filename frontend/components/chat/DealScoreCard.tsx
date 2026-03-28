@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { CSSProperties } from "react";
 import { makeAssistantToolUI } from "@assistant-ui/react";
 import {
@@ -60,6 +61,8 @@ interface ListingCandidate {
   price: number;
   condition: string;
   image_urls: string[];
+  image_url?: string;
+  image?: string;
   description: string;
   seller_name: string;
   seller_rating: number;
@@ -96,6 +99,70 @@ const CONDITION_LABEL: Record<string, string> = {
   poor: "Poor",
 };
 
+const SOURCE_FALLBACK_IMAGES: Record<string, string> = {
+  ebay: "https://picsum.photos/seed/ebay-secondhand-listing/600/600",
+  mercari: "https://picsum.photos/seed/mercari-secondhand-listing/600/600",
+  craigslist: "https://picsum.photos/seed/craigslist-secondhand-listing/600/600",
+  offerup: "https://picsum.photos/seed/offerup-secondhand-listing/600/600",
+  facebook: "https://picsum.photos/seed/facebook-marketplace-listing/600/600",
+  goodwill: "https://picsum.photos/seed/goodwill-listing/600/600",
+  poshmark: "https://picsum.photos/seed/poshmark-listing/600/600",
+};
+
+const PLACEHOLDER_IMAGE_TEST = /placehold\.co|via\.placehold|dummyimage|placeholdit/i;
+
+const LOCAL_FALLBACK_IMAGES: Record<string, string> = {
+  ebay: "/images/scroll/appliance-3.jpg",
+  mercari: "/images/scroll/appliance-4.jpg",
+  craigslist: "/images/scroll/furniture-2.jpg",
+  offerup: "/images/scroll/furniture-3.jpg",
+  facebook: "/images/scroll/car-3.jpg",
+  goodwill: "/images/scroll/car-5.jpg",
+  poshmark: "/images/scroll/furniture-4.jpg",
+  default: "/images/scroll/furniture-1.jpg",
+};
+
+function isValidImageUrl(value: string): boolean {
+  if (!value || !value.trim()) return false;
+  const trimmed = value.trim();
+  if (trimmed.startsWith("blob:") || trimmed.startsWith("data:")) return false;
+  return trimmed.startsWith("http://") || trimmed.startsWith("https://");
+}
+
+function normalizeImageCandidates(listing: ListingCandidate): string[] {
+  const candidates = [
+    ...(listing.image_urls || []),
+    ...(listing.image_url ? [listing.image_url] : []),
+    ...(listing.image ? [listing.image] : []),
+  ];
+  return candidates.filter(
+    (url): url is string =>
+      typeof url === "string" &&
+      isValidImageUrl(url) &&
+      !PLACEHOLDER_IMAGE_TEST.test(url)
+  );
+}
+
+function sourceFallbackImage(listing: ListingCandidate): string {
+  if (SOURCE_FALLBACK_IMAGES[listing.source]) return SOURCE_FALLBACK_IMAGES[listing.source];
+  const safe = `${listing.source || "used-item"}-${listing.title || listing.condition || "deal"}`
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-");
+  return `https://picsum.photos/seed/${safe}/600/600`;
+}
+
+function localFallbackImage(listing: ListingCandidate): string {
+  if (LOCAL_FALLBACK_IMAGES[listing.source]) return LOCAL_FALLBACK_IMAGES[listing.source];
+  return LOCAL_FALLBACK_IMAGES.default;
+}
+
+function imageSequenceFor(listing: ListingCandidate): string[] {
+  const valid = normalizeImageCandidates(listing);
+  return [valid[0], sourceFallbackImage(listing), localFallbackImage(listing)].filter(
+    (value, index, array) => Boolean(value) && array.indexOf(value) === index
+  );
+}
+
 function ScoreBar({ value }: { value: number }) {
   const barColor = value >= 75 ? '#10b981' : value >= 50 ? '#f59e0b' : '#ef4444';
   const textColor = value >= 75 ? '#10b981' : value >= 50 ? '#f59e0b' : '#ef4444';
@@ -129,7 +196,10 @@ function ShortlistCard({ listing }: { listing: ListingCandidate }) {
   const hasFairValue = listing.fair_value_high > 0;
   const hasRecommended = listing.recommended_offer > 0;
   const valueGapPct = Math.round(listing.value_gap_pct * 100);
-  const imgSrc = listing.image_urls?.[0];
+  const [imgIndex, setImgIndex] = useState(0);
+  const imageSequence = imageSequenceFor(listing);
+  const shouldRenderImage = imgIndex < imageSequence.length;
+  const imgSrc = imageSequence[Math.min(imgIndex, imageSequence.length - 1)];
 
   const handleDraftMessage = () => {
     const ta = document.querySelector(
@@ -159,14 +229,14 @@ function ShortlistCard({ listing }: { listing: ListingCandidate }) {
         }}
       >
       {/* Image */}
-      {imgSrc && (
+      {shouldRenderImage && imgSrc && (
         <div className="relative overflow-hidden" style={{ height: '160px', background: 'rgba(255,255,255,0.02)' }}>
           <img
             src={imgSrc}
             alt={listing.title}
             className="w-full h-full object-cover"
-            onError={(e) => {
-              (e.target as HTMLImageElement).parentElement!.style.display = "none";
+            onError={() => {
+              setImgIndex((current) => Math.min(current + 1, imageSequence.length));
             }}
           />
           <div className="absolute top-2 left-2">
@@ -201,7 +271,7 @@ function ShortlistCard({ listing }: { listing: ListingCandidate }) {
       )}
 
       <div style={{ padding: '16px 18px' }} className="space-y-3">
-        {!imgSrc && (
+        {!shouldRenderImage && (
           <div className="flex items-center gap-1.5">
             <span style={{ fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#e2e2f0', textTransform: 'capitalize', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
               <PlatformLogo source={listing.source} size={14} />
