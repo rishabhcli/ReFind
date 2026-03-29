@@ -1,94 +1,114 @@
-"""OfferUp adapter — browser-use (Playwright) for light bot-detection bypass."""
+"""OfferUp adapter backed by the shared Playwright browser context."""
 
-import json
+from __future__ import annotations
+
 import re
+from urllib.parse import quote_plus
+
+from backend.browser import acquire_page, init_browser, release_page
 from backend.models.schemas import ListingCandidate
 
 
-async def search_offerup(query: str, max_price: float = 0) -> list[ListingCandidate]:
-    """Use browser-use to search OfferUp and extract listing cards."""
+async def search_offerup(
+    query: str,
+    max_price: float = 0,
+    location: str = "",
+    radius_miles: int = 25,
+) -> list[ListingCandidate]:
+    del location, radius_miles
+
+    search_url = f"https://offerup.com/search/?q={quote_plus(query)}"
+    if max_price > 0:
+        search_url += f"&price_max={int(max_price)}"
+
+    await init_browser()
+    page = await acquire_page()
     try:
-        from browser_use import Agent
-        from browser_use.browser.browser import Browser, BrowserConfig
-        from langchain_openai import ChatOpenAI
-        from backend.config import DO_INFERENCE_API_KEY, DO_INFERENCE_BASE_URL, MODEL_NAME
-    except ImportError:
-        return []
+        await page.goto(search_url, wait_until="domcontentloaded", timeout=45_000)
+        await page.wait_for_timeout(4_000)
+        await page.evaluate("window.scrollBy(0, window.innerHeight);")
+        await page.wait_for_timeout(1_500)
+        await page.evaluate("window.scrollBy(0, window.innerHeight * 2);")
+        await page.wait_for_timeout(1_500)
 
-    if not DO_INFERENCE_API_KEY:
-        return []
+        raw_items = await page.evaluate(
+            """() => {
+                return Array.from(document.querySelectorAll('a[href*="/item/detail/"]'))
+                    .map((anchor) => {
+                        const spans = Array.from(anchor.querySelectorAll('span'))
+                            .map((span) => (span.textContent || '').trim())
+                            .filter(Boolean);
+                        const deduped = [...new Set(spans)];
+                        const title = (anchor.getAttribute('title') || '').trim()
+                            || deduped.find((text) => !text.startsWith('$') && !text.includes('$'))
+                            || '';
+                        const priceText = deduped.find((text) => /^\\$\\d/.test(text)) || '';
+                        const placeText = deduped
+                            .filter((text) => text !== title && text !== priceText && !text.includes('$'))
+                            .slice(-1)[0] || '';
+                        
+                        const img = anchor.querySelector('img');
+                        let imgUrl = img?.getAttribute('src') || img?.src || '';
+                        if (imgUrl.startsWith('data:image') || imgUrl.length < 50) {
+                            imgUrl = img?.getAttribute('data-src') || img?.getAttribute('srcset')?.split(' ')[0] || imgUrl;
+                        }
 
-    price_filter = f"&price_max={int(max_price)}" if max_price > 0 else ""
-    url = f"https://offerup.com/search/?q={query.replace(' ', '+')}{price_filter}"
-
-    task = (
-        f"Go to {url}\n"
-        "Wait for the listing cards to load (up to 5 seconds).\n"
-        "For each listing card (up to 10), extract:\n"
-        "  - title: the item name\n"
-        "  - price: numeric price in USD (digits only, no $ sign)\n"
-        "  - condition: condition label if shown, else 'good'\n"
-        "  - seller_name: seller username if visible, else empty string\n"
-        "  - location: city or area text if shown, else empty string\n"
-        "  - image_url: the thumbnail src URL\n"
-        "  - url: the full listing URL (href of the card link)\n"
-        "Return ONLY a JSON array of objects with those fields, no other text."
-    )
-
-    llm = ChatOpenAI(
-        model=MODEL_NAME,
-        base_url=DO_INFERENCE_BASE_URL,
-        api_key=DO_INFERENCE_API_KEY,
-        temperature=0,
-    )
-
-    browser = Browser(config=BrowserConfig(headless=True))
-    try:
-        agent = Agent(task=task, llm=llm, browser=browser)
-        result = await agent.run(max_steps=12)
-        raw_text = result.final_result() if hasattr(result, "final_result") else str(result)
+                        const href = anchor.href
+                            ? anchor.href
+                            : new URL(anchor.getAttribute('href') || '', window.location.origin).toString();
+                        return {
+                            url: href,
+                            title,
+                            price_text: priceText,
+                            location: placeText,
+                            image_url: imageUrl,
+                        };
+                    })
+                    .filter((item) => item.url && item.title && item.price_text);
+            }"""
+        )
     finally:
-        await browser.close()
+        await release_page(page)
 
-    # Extract JSON array from result
-    match = re.search(r"\[.*\]", raw_text, re.DOTALL)
-    if not match:
-        return []
-
-    try:
-        items = json.loads(match.group())
-    except (json.JSONDecodeError, ValueError):
-        return []
-
-    results = []
-    for i, item in enumerate(items):
+    results: list[ListingCandidate] = []
+    seen_urls: set[str] = set()
+    for index, item in enumerate(raw_items or []):
         try:
-            raw_price = str(item.get("price", "0")).replace("$", "").replace(",", "").strip()
-            price = float(raw_price) if raw_price else 0.0
+            listing_url = str(item.get("url") or "").strip()
+            if not listing_url or listing_url in seen_urls:
+                continue
+
+            price_match = re.search(r"\$([\d,.]+)", str(item.get("price_text") or ""))
+            if not price_match:
+                continue
+
+            price = float(price_match.group(1).replace(",", ""))
             if price <= 0:
                 continue
 
-            condition = str(item.get("condition", "good")).lower()
-            if condition not in {"new", "like_new", "good", "fair", "poor"}:
-                condition = "good"
+            source_id_match = re.search(r"/item/detail/([^/?#]+)", listing_url)
+            source_id = source_id_match.group(1) if source_id_match else f"offerup-{index}"
+            image_url = str(item.get("image_url") or "").strip()
+            seen_urls.add(listing_url)
 
-            image_url = item.get("image_url", "")
-            results.append(ListingCandidate(
-                source="offerup",
-                source_item_id=f"ou-{i}-{abs(hash(item.get('url', str(i))))}",
-                url=item.get("url", ""),
-                title=item.get("title", ""),
-                price=price,
-                condition=condition,
-                image_urls=[image_url] if image_url else [],
-                description="",
-                seller_name=item.get("seller_name", ""),
-                seller_rating=0.0,
-                location_text=item.get("location", ""),
-                is_local_pickup=True,
-                is_shipped=True,
-            ))
+            results.append(
+                ListingCandidate(
+                    source="offerup",
+                    source_item_id=source_id,
+                    url=listing_url,
+                    title=str(item.get("title") or "").strip(),
+                    price=price,
+                    condition="good",
+                    image_urls=[image_url] if image_url else [],
+                    description="",
+                    seller_name="",
+                    seller_rating=0.0,
+                    location_text=str(item.get("location") or "").strip(),
+                    is_local_pickup=True,
+                    is_shipped=True,
+                )
+            )
         except Exception:
             continue
 
-    return results
+    return results[:10]

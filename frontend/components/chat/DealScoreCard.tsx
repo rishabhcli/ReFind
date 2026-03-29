@@ -9,9 +9,12 @@ import {
   ExternalLink,
   MessageCircle,
   Star,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { ToolScrollRail } from "./ToolScrollRail";
 import { PlatformLogo, MapPinIcon } from "@/components/icons/PlatformIcons";
+import { collectListingImageSequence } from "@/lib/listing-images";
 
 // ── score_deal status indicator ──────────────────────────────────
 export const ScoreDealUI = makeAssistantToolUI<
@@ -99,68 +102,8 @@ const CONDITION_LABEL: Record<string, string> = {
   poor: "Poor",
 };
 
-const SOURCE_FALLBACK_IMAGES: Record<string, string> = {
-  ebay: "https://picsum.photos/seed/ebay-secondhand-listing/600/600",
-  mercari: "https://picsum.photos/seed/mercari-secondhand-listing/600/600",
-  craigslist: "https://picsum.photos/seed/craigslist-secondhand-listing/600/600",
-  offerup: "https://picsum.photos/seed/offerup-secondhand-listing/600/600",
-  facebook: "https://picsum.photos/seed/facebook-marketplace-listing/600/600",
-  goodwill: "https://picsum.photos/seed/goodwill-listing/600/600",
-  poshmark: "https://picsum.photos/seed/poshmark-listing/600/600",
-};
-
-const PLACEHOLDER_IMAGE_TEST = /placehold\.co|via\.placehold|dummyimage|placeholdit/i;
-
-const LOCAL_FALLBACK_IMAGES: Record<string, string> = {
-  ebay: "/images/scroll/appliance-3.jpg",
-  mercari: "/images/scroll/appliance-4.jpg",
-  craigslist: "/images/scroll/furniture-2.jpg",
-  offerup: "/images/scroll/furniture-3.jpg",
-  facebook: "/images/scroll/car-3.jpg",
-  goodwill: "/images/scroll/car-5.jpg",
-  poshmark: "/images/scroll/furniture-4.jpg",
-  default: "/images/scroll/furniture-1.jpg",
-};
-
-function isValidImageUrl(value: string): boolean {
-  if (!value || !value.trim()) return false;
-  const trimmed = value.trim();
-  if (trimmed.startsWith("blob:") || trimmed.startsWith("data:")) return false;
-  return trimmed.startsWith("http://") || trimmed.startsWith("https://");
-}
-
-function normalizeImageCandidates(listing: ListingCandidate): string[] {
-  const candidates = [
-    ...(listing.image_urls || []),
-    ...(listing.image_url ? [listing.image_url] : []),
-    ...(listing.image ? [listing.image] : []),
-  ];
-  return candidates.filter(
-    (url): url is string =>
-      typeof url === "string" &&
-      isValidImageUrl(url) &&
-      !PLACEHOLDER_IMAGE_TEST.test(url)
-  );
-}
-
-function sourceFallbackImage(listing: ListingCandidate): string {
-  if (SOURCE_FALLBACK_IMAGES[listing.source]) return SOURCE_FALLBACK_IMAGES[listing.source];
-  const safe = `${listing.source || "used-item"}-${listing.title || listing.condition || "deal"}`
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-");
-  return `https://picsum.photos/seed/${safe}/600/600`;
-}
-
-function localFallbackImage(listing: ListingCandidate): string {
-  if (LOCAL_FALLBACK_IMAGES[listing.source]) return LOCAL_FALLBACK_IMAGES[listing.source];
-  return LOCAL_FALLBACK_IMAGES.default;
-}
-
 function imageSequenceFor(listing: ListingCandidate): string[] {
-  const valid = normalizeImageCandidates(listing);
-  return [valid[0], sourceFallbackImage(listing), localFallbackImage(listing)].filter(
-    (value, index, array) => Boolean(value) && array.indexOf(value) === index
-  );
+  return collectListingImageSequence(listing);
 }
 
 function ScoreBar({ value }: { value: number }) {
@@ -171,7 +114,7 @@ function ScoreBar({ value }: { value: number }) {
       <div className="flex-1 overflow-hidden" style={{ height: '6px', borderRadius: '999px', background: 'rgba(255,255,255,0.08)' }}>
         <div style={{ height: '100%', borderRadius: '999px', background: barColor, width: `${value}%`, transition: 'width 500ms ease' }} />
       </div>
-      <span style={{ fontSize: '15px', fontWeight: 700, color: textColor, tabularNums: 'tabular-nums' } as CSSProperties}>{Math.round(value)}</span>
+      <span style={{ fontSize: '15px', fontWeight: 700, color: textColor, fontVariantNumeric: 'tabular-nums' } as CSSProperties}>{Math.round(value)}</span>
     </div>
   );
 }
@@ -306,7 +249,7 @@ function ShortlistCard({ listing }: { listing: ListingCandidate }) {
             <ScoreBar value={listing.deal_score} />
             {listing.score_value_gap != null && (
               <div className="space-y-0.5 mt-1">
-                <DimensionBar label="Value" value={listing.score_value_gap} weight="35%" />
+                <DimensionBar label="Value Gap" value={listing.score_value_gap} weight="35%" />
                 <DimensionBar label="Distance" value={listing.score_distance ?? 0} weight="20%" />
                 <DimensionBar label="Condition" value={listing.score_condition ?? 0} weight="15%" />
                 <DimensionBar label="Seller" value={listing.score_seller_rep ?? 0} weight="10%" />
@@ -379,7 +322,7 @@ function ShortlistCard({ listing }: { listing: ListingCandidate }) {
             }}
           >
             <MessageCircle className="h-3.5 w-3.5" />
-            Draft message
+            Contact Seller
           </button>
         </div>
       </div>
@@ -411,11 +354,157 @@ export const ShortlistResultUI = makeAssistantToolUI<
 
 interface NegotiateArgs {
   listing_id?: string;
+  listing_url?: string;
   seller_name?: string;
   opening_message?: string;
+  message?: string;
   recommended_offer?: number;
   walk_away_price?: number;
   tone?: string;
+}
+
+const NEGOTIATE_ENDPOINT =
+  typeof window !== "undefined" && process.env.NEXT_PUBLIC_AGENT_API_URL
+    ? `${process.env.NEXT_PUBLIC_AGENT_API_URL}/api/negotiate`
+    : "/api/negotiate-proxy";
+
+function NegotiateStrategyCard({ args }: { args: NegotiateArgs }) {
+  const [decision, setDecision] = useState<"pending" | "editing" | "sending" | "sent" | "skipped">("pending");
+  const [editedMessage, setEditedMessage] = useState(args.opening_message ?? args.message ?? "");
+  const [sendError, setSendError] = useState<string | null>(null);
+
+  const handleSend = async (msgToSend: string) => {
+    setDecision("sending");
+    setSendError(null);
+    try {
+      const res = await fetch(NEGOTIATE_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "send",
+          listing_url: args.listing_url ?? "",
+          message: msgToSend,
+        }),
+      });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({})) as { error?: string };
+        throw new Error(payload?.error ?? `Server error ${res.status}`);
+      }
+      setDecision("sent");
+    } catch (err: unknown) {
+      setSendError(err instanceof Error ? err.message : "Send failed");
+      setDecision("pending");
+    }
+  };
+
+  if (decision === "sent") {
+    return (
+      <div className="my-2 flex items-center gap-2" style={{ maxWidth: '440px', borderRadius: '14px', border: '1px solid rgba(16,185,129,0.25)', background: 'rgba(16,185,129,0.08)', padding: '12px 16px', fontSize: '14px', color: '#10b981' }}>
+        <CheckCircle2 className="h-4 w-4" />
+        Message sent to {args.seller_name ?? "Seller"}
+      </div>
+    );
+  }
+
+  if (decision === "skipped") {
+    return (
+      <div className="my-2 flex items-center gap-2" style={{ maxWidth: '440px', borderRadius: '14px', border: '1px solid rgba(239,68,68,0.25)', background: 'rgba(239,68,68,0.08)', padding: '12px 16px', fontSize: '14px', color: '#ef4444' }}>
+        <XCircle className="h-4 w-4" />
+        Skipped negotiation for {args.seller_name ?? "Seller"}
+      </div>
+    );
+  }
+
+  return (
+    <div className="glass my-2 w-full" style={{ maxWidth: '440px', borderRadius: '18px', padding: '16px 18px' }}>
+      <div className="mb-2 flex items-center gap-2" style={{ fontSize: '14px', fontWeight: 500, color: '#e2e2f0' }}>
+        <MessageCircle className="h-4 w-4" style={{ color: '#6366f1' }} />
+        Negotiation Strategy — {args.seller_name ?? "Seller"}
+      </div>
+      <div className="mb-2 flex gap-2 flex-wrap" style={{ fontSize: '11px' }}>
+        {args.recommended_offer != null && (
+          <span style={{ padding: '3px 10px', borderRadius: '999px', background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}>
+            Offer: ${args.recommended_offer.toFixed(0)}
+          </span>
+        )}
+        {args.walk_away_price != null && (
+          <span style={{ padding: '3px 10px', borderRadius: '999px', background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>
+            Walk-away: ${args.walk_away_price.toFixed(0)}
+          </span>
+        )}
+        <span style={{ padding: '3px 10px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', color: '#7878a0', textTransform: 'capitalize' }}>
+          {args.tone ?? "friendly"} tone
+        </span>
+      </div>
+
+      {decision === "editing" ? (
+        <textarea
+          value={editedMessage}
+          onChange={(e) => setEditedMessage(e.target.value)}
+          rows={6}
+          style={{ display: 'block', width: '100%', borderRadius: '10px', background: 'rgba(255,255,255,0.06)', padding: '12px 14px', fontSize: '12px', color: '#e2e2f0', border: '1px solid rgba(99,102,241,0.35)', outline: 'none', resize: 'vertical', marginBottom: '12px', fontFamily: 'inherit', lineHeight: 1.6 }}
+        />
+      ) : (
+        <div className="mb-3 whitespace-pre-wrap" style={{ borderRadius: '10px', background: 'rgba(255,255,255,0.04)', padding: '12px 14px', fontSize: '12px', color: '#7878a0', border: '1px solid rgba(255,255,255,0.06)' }}>
+          {args.opening_message ?? args.message ?? "Preparing message…"}
+        </div>
+      )}
+
+      {sendError && (
+        <div className="mb-2" style={{ fontSize: '11px', color: '#ef4444', padding: '6px 10px', borderRadius: '8px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+          {sendError}
+        </div>
+      )}
+
+      <div className="flex gap-2 flex-wrap">
+        {decision === "editing" ? (
+          <>
+            <button
+              onClick={() => void handleSend(editedMessage)}
+              className="interactive focus-ring"
+              style={{ borderRadius: '10px', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', padding: '8px 18px', fontSize: '12px', fontWeight: 500, color: '#10b981' }}
+            >
+              Send this message
+            </button>
+            <button
+              onClick={() => setDecision("pending")}
+              className="interactive focus-ring"
+              style={{ borderRadius: '10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', padding: '8px 18px', fontSize: '12px', fontWeight: 500, color: '#7878a0' }}
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => void handleSend(args.opening_message ?? args.message ?? "")}
+              disabled={decision === "sending"}
+              className="interactive focus-ring"
+              style={{ borderRadius: '10px', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', padding: '8px 18px', fontSize: '12px', fontWeight: 500, color: '#10b981', opacity: decision === "sending" ? 0.6 : 1 }}
+            >
+              {decision === "sending" ? "Sending…" : "Send this message"}
+            </button>
+            <button
+              onClick={() => setDecision("editing")}
+              disabled={decision === "sending"}
+              className="interactive focus-ring"
+              style={{ borderRadius: '10px', background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', padding: '8px 18px', fontSize: '12px', fontWeight: 500, color: '#818cf8' }}
+            >
+              Edit before sending
+            </button>
+            <button
+              onClick={() => setDecision("skipped")}
+              disabled={decision === "sending"}
+              className="interactive focus-ring"
+              style={{ borderRadius: '10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', padding: '8px 18px', fontSize: '12px', fontWeight: 500, color: '#7878a0' }}
+            >
+              Skip negotiation
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export const NegotiateStrategyUI = makeAssistantToolUI<NegotiateArgs, { status?: string }>({
@@ -434,37 +523,7 @@ export const NegotiateStrategyUI = makeAssistantToolUI<NegotiateArgs, { status?:
     }
     return (
       <ToolScrollRail animate={false}>
-        <div className="glass my-2 w-full" style={{ maxWidth: '440px', borderRadius: '18px', padding: '16px 18px' }}>
-          <div className="mb-2 flex items-center gap-2" style={{ fontSize: '14px', fontWeight: 500, color: '#e2e2f0' }}>
-            <MessageCircle className="h-4 w-4" style={{ color: '#6366f1' }} />
-            Negotiation Strategy — {args.seller_name ?? "Seller"}
-          </div>
-          <div className="mb-2 flex gap-2 flex-wrap" style={{ fontSize: '11px' }}>
-            <span style={{ padding: '3px 10px', borderRadius: '999px', background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}>
-              Offer: ${args.recommended_offer?.toFixed(0) ?? "—"}
-            </span>
-            <span style={{ padding: '3px 10px', borderRadius: '999px', background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>
-              Walk-away: ${args.walk_away_price?.toFixed(0) ?? "—"}
-            </span>
-            <span style={{ padding: '3px 10px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', color: '#7878a0', textTransform: 'capitalize' }}>
-              {args.tone ?? "friendly"} tone
-            </span>
-          </div>
-          <div className="mb-3 whitespace-pre-wrap" style={{ borderRadius: '10px', background: 'rgba(255,255,255,0.04)', padding: '12px 14px', fontSize: '12px', color: '#7878a0', border: '1px solid rgba(255,255,255,0.06)' }}>
-            {args.opening_message ?? "Preparing message…"}
-          </div>
-          <div className="flex gap-2">
-            <button className="interactive focus-ring" style={{ borderRadius: '10px', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', padding: '8px 18px', fontSize: '12px', fontWeight: 500, color: '#10b981' }}>
-              Send this message
-            </button>
-            <button className="interactive focus-ring" style={{ borderRadius: '10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', padding: '8px 18px', fontSize: '12px', fontWeight: 500, color: '#7878a0' }}>
-              Edit
-            </button>
-            <button className="interactive focus-ring" style={{ borderRadius: '10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', padding: '8px 18px', fontSize: '12px', fontWeight: 500, color: '#7878a0' }}>
-              Skip
-            </button>
-          </div>
-        </div>
+        <NegotiateStrategyCard args={args} />
       </ToolScrollRail>
     );
   },

@@ -122,7 +122,7 @@ export function AssistantChat({
             />
           </ThreadPrimitive.Viewport>
 
-          <ComposerShell />
+          <ComposerShell isRunning={isRunning} />
         </ThreadPrimitive.Root>
       </div>
     </AssistantRuntimeProvider>
@@ -289,7 +289,7 @@ function DiscoveryHero() {
   );
 }
 
-function ComposerShell() {
+function ComposerShell({ isRunning }: { isRunning: boolean }) {
   const attachmentCount = useAuiState((state) => state.composer.attachments.length);
 
   return (
@@ -298,31 +298,35 @@ function ComposerShell() {
         position: "sticky",
         bottom: 0,
         zIndex: 10,
-        padding: "0 20px 20px",
-        background: "rgba(15, 17, 19, 0.92)",
-        borderTop: "1px solid rgba(35, 42, 49, 0.92)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
+        padding: "0 18px 18px",
+        background:
+          "linear-gradient(to top, rgba(15, 17, 19, 0.98), rgba(15, 17, 19, 0.88) 62%, transparent)",
       }}
     >
       <ComposerPrimitive.AttachmentDropzone>
         <div
-          className="mx-auto surface-panel-strong"
+          className="mx-auto"
           style={{
-            maxWidth: "920px",
-            borderRadius: "28px",
-            padding: "14px",
+            maxWidth: "980px",
             marginTop: "14px",
+            borderRadius: "32px",
+            padding: "16px",
+            background:
+              "linear-gradient(180deg, rgba(29, 34, 40, 0.98) 0%, rgba(23, 27, 32, 0.98) 100%)",
+            border: "1px solid rgba(58, 67, 76, 0.92)",
+            boxShadow: "0 22px 48px rgba(0, 0, 0, 0.34)",
+            backdropFilter: "blur(18px)",
+            WebkitBackdropFilter: "blur(18px)",
           }}
         >
           <ComposerPrimitive.If dictation>
             <div
               style={{
-                marginBottom: "10px",
-                borderRadius: "16px",
+                marginBottom: "12px",
+                borderRadius: "18px",
                 background: "rgba(143, 165, 138, 0.12)",
                 border: "1px solid rgba(143, 165, 138, 0.24)",
-                padding: "10px 12px",
+                padding: "11px 14px",
                 fontSize: "12px",
                 color: "var(--card-foreground)",
               }}
@@ -342,14 +346,15 @@ function ComposerShell() {
             </div>
           ) : null}
 
-          <ComposerPrimitive.Root className="flex items-end gap-3">
+          <ComposerPrimitive.Root className="flex flex-col gap-3 lg:flex-row lg:items-stretch">
             <div
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 self-start"
               style={{
-                padding: "5px",
-                borderRadius: "18px",
-                background: "var(--card)",
-                border: "1px solid var(--border)",
+                padding: "6px",
+                borderRadius: "22px",
+                background: "rgba(15, 18, 22, 0.84)",
+                border: "1px solid rgba(58, 67, 76, 0.92)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.02)",
               }}
             >
               <ComposerToolbarButton
@@ -375,46 +380,98 @@ function ComposerShell() {
               </ComposerToolbarButton>
             </div>
 
-            <ComposerPrimitive.Input
-              placeholder="Search for a used item, budget, brand, or condition"
-              className="focus-ring min-h-[58px] max-h-[180px] flex-1 resize-none rounded-[20px] border border-[var(--border)] bg-[var(--card)] px-[18px] py-4 text-[15px] text-[var(--foreground)] outline-none"
-              autoFocus
-            />
-
-            <ComposerPrimitive.Cancel
-              className="interactive focus-ring flex items-center justify-center rounded-[18px]"
+            <div
+              className="flex min-w-0 flex-1 flex-col"
               style={{
-                width: "52px",
-                height: "52px",
-                background: "rgba(201, 111, 98, 0.12)",
-                border: "1px solid rgba(201, 111, 98, 0.28)",
-                color: "var(--destructive)",
+                borderRadius: "26px",
+                border: "1px solid rgba(58, 67, 76, 0.92)",
+                background: "rgba(22, 26, 30, 0.96)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.02)",
+                padding: "12px 16px 14px",
               }}
-              title="Stop this run"
             >
-              <Square className="h-4 w-4" />
-            </ComposerPrimitive.Cancel>
+              <div
+                className="flex items-center justify-between gap-3"
+                style={{
+                  marginBottom: "8px",
+                  fontSize: "11px",
+                  color: "var(--text-dim)",
+                  letterSpacing: "0.03em",
+                  textTransform: "uppercase",
+                }}
+              >
+                <span
+                  className="inline-flex items-center gap-2"
+                  style={{ color: isRunning ? "var(--accent-strong)" : "var(--text-dim)" }}
+                >
+                  <span
+                    style={{
+                      width: "7px",
+                      height: "7px",
+                      borderRadius: "999px",
+                      background: isRunning ? "var(--accent-strong)" : "rgba(104, 114, 123, 0.78)",
+                      boxShadow: isRunning
+                        ? "0 0 0 6px rgba(143, 165, 138, 0.12)"
+                        : "none",
+                    }}
+                  />
+                  {isRunning ? "Search running" : "Ready to scan"}
+                </span>
+                <span className="hidden md:inline">
+                  {attachmentCount > 0
+                    ? `${attachmentCount} listing reference${attachmentCount > 1 ? "s" : ""} attached`
+                    : "Add photos or files to compare listings"}
+                </span>
+              </div>
 
-            <ComposerPrimitive.Send
-              className="interactive focus-ring flex items-center justify-center rounded-[18px] disabled:opacity-40"
-              style={{
-                width: "52px",
-                height: "52px",
-                background: "var(--accent)",
-                border: "1px solid rgba(173, 193, 168, 0.28)",
-                color: "var(--accent-foreground)",
-                boxShadow: "0 12px 24px rgba(143, 165, 138, 0.18)",
-              }}
-              title="Send"
-            >
-              <Send className="h-4 w-4" />
-            </ComposerPrimitive.Send>
+              <ComposerPrimitive.Input
+                placeholder="Search for a used item, budget, brand, or condition"
+                className="focus-ring min-h-[64px] max-h-[180px] flex-1 resize-none rounded-[22px] border border-transparent bg-transparent px-0 py-0 text-[15px] text-[var(--foreground)] outline-none"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-3 lg:self-end">
+              <ComposerPrimitive.Cancel
+                disabled={!isRunning}
+                className="interactive focus-ring flex items-center justify-center rounded-[20px] disabled:opacity-45"
+                style={{
+                  width: "56px",
+                  height: "56px",
+                  background: isRunning
+                    ? "rgba(201, 111, 98, 0.12)"
+                    : "rgba(104, 114, 123, 0.08)",
+                  border: `1px solid ${isRunning
+                    ? "rgba(201, 111, 98, 0.28)"
+                    : "rgba(58, 67, 76, 0.72)"}`,
+                  color: isRunning ? "var(--destructive)" : "var(--text-dim)",
+                }}
+                title="Stop this run"
+              >
+                <Square className="h-4 w-4" />
+              </ComposerPrimitive.Cancel>
+
+              <ComposerPrimitive.Send
+                className="interactive focus-ring flex items-center justify-center rounded-[20px] disabled:opacity-40"
+                style={{
+                  width: "56px",
+                  height: "56px",
+                  background: "var(--accent)",
+                  border: "1px solid rgba(173, 193, 168, 0.28)",
+                  color: "var(--accent-foreground)",
+                  boxShadow: "0 14px 30px rgba(143, 165, 138, 0.2)",
+                }}
+                title="Send"
+              >
+                <Send className="h-4 w-4" />
+              </ComposerPrimitive.Send>
+            </div>
           </ComposerPrimitive.Root>
 
           <div
             className="mt-3 flex items-center justify-between gap-4"
             style={{
-              padding: "0 2px",
+              padding: "0 4px",
               fontSize: "11px",
               color: "var(--text-dim)",
             }}
@@ -423,7 +480,7 @@ function ComposerShell() {
               ReFind checks secondhand marketplaces and ranks likely value before you message a seller.
             </span>
             <span className="hidden md:inline" style={{ whiteSpace: "nowrap" }}>
-              Add photos or files to compare listings faster.
+              Hover a discovery rail to pause it. Paste a budget to tighten search quality.
             </span>
           </div>
         </div>
@@ -447,8 +504,8 @@ function ComposerToolbarButton({
     <Primitive
       className="interactive focus-ring flex items-center justify-center rounded-[14px]"
       style={{
-        width: "42px",
-        height: "42px",
+        width: "44px",
+        height: "44px",
         background: danger ? "rgba(201, 111, 98, 0.12)" : "transparent",
         border: `1px solid ${danger ? "rgba(201, 111, 98, 0.24)" : "transparent"}`,
         color: danger ? "var(--destructive)" : "var(--muted-foreground)",

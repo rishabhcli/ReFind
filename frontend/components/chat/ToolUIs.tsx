@@ -12,7 +12,7 @@ import {
   BrowserEnricherUI,
 } from "./SearchProgressCard";
 import { ScoreDealUI, ShortlistResultUI, NegotiateStrategyUI } from "./DealScoreCard";
-import { DraftMessageUI } from "./ContactApproval";
+import { DraftMessageUI, ContactSellerUI } from "./ContactApproval";
 
 /**
  * Registers all tool UIs with assistant-ui.
@@ -21,6 +21,7 @@ import { DraftMessageUI } from "./ContactApproval";
 export function ToolUIs() {
   return (
     <>
+      {/* Search progress cards */}
       <EbaySearchUI />
       <MercariSearchUI />
       <CraigslistSearchUI />
@@ -29,11 +30,14 @@ export function ToolUIs() {
       <FBSearchUI />
       <OfferUpSearchUI />
       <PoshmarkSearchUI />
-      <ScoreDealUI />
       <BrowserEnricherUI />
+      {/* Deal scoring / shortlist */}
+      <ScoreDealUI />
       <ShortlistResultUI />
+      {/* Negotiation / contact */}
       <NegotiateStrategyUI />
       <DraftMessageUI />
+      <ContactSellerUI />
     </>
   );
 }

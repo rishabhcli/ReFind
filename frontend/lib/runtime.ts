@@ -110,6 +110,7 @@ export function useReFindRuntime(
         ? `🔎 Finding deals for **${safeQuery}**...\n\n![${safeQuery}](${searchPreviewImage(safeQuery)})`
         : "🔎 Finding deals...";
       let assistantText = previewText;
+      let hasReceivedText = false;
       const toolCalls: Map<
         string,
         { toolCallId: string; toolName: string; args: Record<string, unknown>; result?: unknown }
@@ -142,14 +143,25 @@ export function useReFindRuntime(
         });
 
         if (!res.ok || !res.body) {
-          throw new Error(`Agent API error: ${res.status}`);
+          let errorMessage = `Agent API error: ${res.status}`;
+
+          try {
+            const payload = (await res.json()) as { error?: string };
+            if (payload?.error) {
+              errorMessage = payload.error;
+            }
+          } catch {
+            // Ignore JSON parsing failures and keep the generic error message.
+          }
+
+          throw new Error(errorMessage);
         }
 
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
 
-        while (true) {
+        outer: while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
@@ -160,23 +172,37 @@ export function useReFindRuntime(
           for (const line of lines) {
             if (!line.startsWith("data: ")) continue;
             const data = line.slice(6);
-            if (data === "[DONE]") break;
+            if (data === "[DONE]") {
+              reader.cancel().catch(() => {});
+              break outer;
+            }
 
             try {
-              const event = JSON.parse(data);
+              const event = JSON.parse(data) as {
+                type: string;
+                content?: string;
+                tool_call_id?: string;
+                tool_name?: string;
+                args?: Record<string, unknown>;
+                result?: unknown;
+              };
 
               if (event.type === "text") {
-                assistantText += event.content;
+                if (!hasReceivedText) {
+                  assistantText = "";
+                  hasReceivedText = true;
+                }
+                assistantText += event.content ?? "";
                 updateAssistant(buildParts());
               } else if (event.type === "tool_call") {
-                toolCalls.set(event.tool_call_id, {
-                  toolCallId: event.tool_call_id,
-                  toolName: event.tool_name,
+                toolCalls.set(event.tool_call_id!, {
+                  toolCallId: event.tool_call_id!,
+                  toolName: event.tool_name!,
                   args: event.args ?? {},
                 });
                 updateAssistant(buildParts());
               } else if (event.type === "tool_result") {
-                const tc = toolCalls.get(event.tool_call_id);
+                const tc = toolCalls.get(event.tool_call_id!);
                 if (tc) {
                   tc.result = event.result;
                   updateAssistant(buildParts());
@@ -196,7 +222,7 @@ export function useReFindRuntime(
               content: [
                 {
                   type: "text" as const,
-                  text: "Sorry, something went wrong connecting to the agent. Please try again.",
+                  text: err.message,
                 },
               ],
             },

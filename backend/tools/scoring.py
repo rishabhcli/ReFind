@@ -39,13 +39,46 @@ def normalize_condition(raw: str) -> str:
 
 
 def deduplicate(listings: list[ListingCandidate]) -> list[ListingCandidate]:
-    """Remove near-duplicates: title similarity > 85% AND price diff < 15%."""
+    """Remove near-duplicates, keeping the richer listing when possible."""
     unique: list[ListingCandidate] = []
     for c in listings:
         is_dup = False
-        for u in unique:
+        for idx, u in enumerate(unique):
             sim = SequenceMatcher(None, c.title.lower(), u.title.lower()).ratio()
-            if sim > 0.85 and u.price > 0 and abs(c.price - u.price) / u.price < 0.15:
+            if (
+                c.source != u.source
+                and sim > 0.85
+                and u.price > 0
+                and abs(c.price - u.price) / u.price < 0.15
+            ):
+                c_fields = sum(
+                    1
+                    for value in [
+                        c.description,
+                        c.seller_name,
+                        c.location_text,
+                        c.posted_at,
+                        c.image_urls,
+                        c.seller_review_count,
+                        c.seller_rating,
+                    ]
+                    if value
+                )
+                u_fields = sum(
+                    1
+                    for value in [
+                        u.description,
+                        u.seller_name,
+                        u.location_text,
+                        u.posted_at,
+                        u.image_urls,
+                        u.seller_review_count,
+                        u.seller_rating,
+                    ]
+                    if value
+                )
+                if c_fields > u_fields:
+                    unique[idx] = c
                 is_dup = True
                 break
         if not is_dup:
@@ -77,11 +110,11 @@ def score_listing_7d(
         listing.value_gap_pct = 0.0
 
     # 2. Distance (20%)
-    if user_lat and user_lng and listing.lat and listing.lng:
+    if user_lat and user_lng and listing.lat is not None and listing.lng is not None:
         dist = haversine(user_lat, user_lng, listing.lat, listing.lng)
         distance_score = max(0.0, 100.0 * (1 - dist / radius_miles)) if dist <= radius_miles else 0.0
     else:
-        distance_score = 60.0  # unknown distance fallback
+        distance_score = 35.0 if listing.is_shipped else 20.0
 
     # 3. Condition (15%)
     condition_score = float(_CONDITION_SCORE.get(listing.condition, 50))

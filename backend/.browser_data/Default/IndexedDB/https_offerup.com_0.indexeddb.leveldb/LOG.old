@@ -1,0 +1,7 @@
+2026/03/28-17:36:17.597 cb4 Reusing MANIFEST C:\Users\14697\Downloads\ReFind\backend\.browser_data\Default\IndexedDB\https_offerup.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/03/28-17:36:17.597 cb4 Recovering log #4
+2026/03/28-17:36:17.598 cb4 Reusing old log C:\Users\14697\Downloads\ReFind\backend\.browser_data\Default\IndexedDB\https_offerup.com_0.indexeddb.leveldb/000004.log 
+2026/03/28-17:36:17.691 173c Level-0 table #8: started
+2026/03/28-17:36:17.693 173c Level-0 table #8: 2220 bytes OK
+2026/03/28-17:36:17.694 173c Delete type=0 #4
+2026/03/28-17:36:17.694 cb4 Manual compaction at level-0 from '\x00\x03\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x04\x00\x00\x00' @ 0 : 0; will stop at (end)

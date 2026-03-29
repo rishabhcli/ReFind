@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactElement } from "react";
+
 interface IconProps {
   size?: number;
   className?: string;
@@ -51,6 +53,24 @@ export function FacebookIcon({ size = 16, className }: IconProps) {
   );
 }
 
+export function EbayIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      <circle cx="12" cy="12" r="11" fill="#3b82f6" />
+      <text x="12" y="16" textAnchor="middle" fontSize="8" fontWeight="800" fill="#fff" fontFamily="Arial,sans-serif">eBay</text>
+    </svg>
+  );
+}
+
+export function PoshmarkIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      <circle cx="12" cy="12" r="11" fill="#f43f5e" />
+      <path d="M8 16c0-2.2 1.8-4 4-4s4 1.8 4 4M12 7a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Z" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 /** Lookup helper — returns the correct platform icon component */
 export function PlatformLogo({ source, size = 16, className }: { source: string } & IconProps) {
   const key = source.toLowerCase();
@@ -59,7 +79,12 @@ export function PlatformLogo({ source, size = 16, className }: { source: string 
     case "craigslist": return <CraigslistIcon size={size} className={className} />;
     case "goodwill":   return <GoodwillIcon size={size} className={className} />;
     case "offerup":    return <OfferUpIcon size={size} className={className} />;
-    case "facebook":   return <FacebookIcon size={size} className={className} />;
+    case "facebook":
+    case "facebook marketplace":
+    case "facebook_marketplace":
+                       return <FacebookIcon size={size} className={className} />;
+    case "ebay":       return <EbayIcon size={size} className={className} />;
+    case "poshmark":   return <PoshmarkIcon size={size} className={className} />;
     default:           return <GenericSourceIcon size={size} className={className} />;
   }
 }
@@ -71,6 +96,48 @@ function GenericSourceIcon({ size = 16, className }: IconProps) {
       <circle cx="12" cy="12" r="4" stroke="#fff" strokeWidth="2" />
     </svg>
   );
+}
+
+/** Returns a hex color string for a given platform source key */
+export function getPlatformColor(source: string): string {
+  const key = source.toLowerCase();
+  switch (key) {
+    case "mercari":   return "#f43f5e";
+    case "craigslist": return "#f97316";
+    case "goodwill":  return "#10b981";
+    case "offerup":   return "#38bdf8";
+    case "facebook":
+    case "facebook marketplace":
+    case "facebook_marketplace":
+                      return "#8b5cf6";
+    case "ebay":      return "#3b82f6";
+    case "poshmark":  return "#f43f5e";
+    default:          return "#7878a0";
+  }
+}
+
+/** Returns a human-readable display label for a given platform source key */
+export function getPlatformLabel(source: string): string {
+  const key = source.toLowerCase();
+  switch (key) {
+    case "mercari":   return "Mercari";
+    case "craigslist": return "Craigslist";
+    case "goodwill":  return "Goodwill";
+    case "offerup":   return "OfferUp";
+    case "facebook":
+    case "facebook marketplace":
+    case "facebook_marketplace":
+                      return "Facebook Marketplace";
+    case "ebay":      return "eBay";
+    case "poshmark":  return "Poshmark";
+    case "browser_enricher": return "Reading listing details";
+    default:          return source;
+  }
+}
+
+/** Returns a React element icon for a given platform source key */
+export function getPlatformIcon(source: string, size = 16): ReactElement {
+  return <PlatformLogo source={source} size={size} />;
 }
 
 /* ── Category SVG icons (replace emojis in Discovery Screen) ────── */

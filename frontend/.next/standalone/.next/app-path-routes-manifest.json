@@ -1,0 +1,17 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/auth/callback/route": "/api/auth/callback",
+  "/api/auth/sign-in/route": "/api/auth/sign-in",
+  "/api/auth/sign-up/route": "/api/auth/sign-up",
+  "/api/auth/signin/route": "/api/auth/signin",
+  "/api/auth/signup/route": "/api/auth/signup",
+  "/api/chat/route": "/api/chat",
+  "/api/image/route": "/api/image",
+  "/api/negotiate-proxy/route": "/api/negotiate-proxy",
+  "/api/trending/route": "/api/trending",
+  "/chat/page": "/chat",
+  "/discover/page": "/discover",
+  "/favicon.ico/route": "/favicon.ico",
+  "/page": "/"
+}

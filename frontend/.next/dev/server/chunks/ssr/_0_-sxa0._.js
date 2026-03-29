@@ -1,0 +1,4911 @@
+module.exports = [
+"[project]/node_modules/jose/dist/node/esm/runtime/digest.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>__TURBOPACK__default__export__
+]);
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:crypto [external] (node:crypto, cjs)");
+;
+const digest = (algorithm, data)=>(0, __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["createHash"])(algorithm).update(data).digest();
+const __TURBOPACK__default__export__ = digest;
+}),
+"[project]/node_modules/jose/dist/node/esm/lib/buffer_utils.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "concat",
+    ()=>concat,
+    "concatKdf",
+    ()=>concatKdf,
+    "decoder",
+    ()=>decoder,
+    "encoder",
+    ()=>encoder,
+    "lengthAndInput",
+    ()=>lengthAndInput,
+    "p2s",
+    ()=>p2s,
+    "uint32be",
+    ()=>uint32be,
+    "uint64be",
+    ()=>uint64be
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$digest$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/digest.js [app-rsc] (ecmascript)");
+;
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+const MAX_INT32 = 2 ** 32;
+function concat(...buffers) {
+    const size = buffers.reduce((acc, { length })=>acc + length, 0);
+    const buf = new Uint8Array(size);
+    let i = 0;
+    for (const buffer of buffers){
+        buf.set(buffer, i);
+        i += buffer.length;
+    }
+    return buf;
+}
+function p2s(alg, p2sInput) {
+    return concat(encoder.encode(alg), new Uint8Array([
+        0
+    ]), p2sInput);
+}
+function writeUInt32BE(buf, value, offset) {
+    if (value < 0 || value >= MAX_INT32) {
+        throw new RangeError(`value must be >= 0 and <= ${MAX_INT32 - 1}. Received ${value}`);
+    }
+    buf.set([
+        value >>> 24,
+        value >>> 16,
+        value >>> 8,
+        value & 0xff
+    ], offset);
+}
+function uint64be(value) {
+    const high = Math.floor(value / MAX_INT32);
+    const low = value % MAX_INT32;
+    const buf = new Uint8Array(8);
+    writeUInt32BE(buf, high, 0);
+    writeUInt32BE(buf, low, 4);
+    return buf;
+}
+function uint32be(value) {
+    const buf = new Uint8Array(4);
+    writeUInt32BE(buf, value);
+    return buf;
+}
+function lengthAndInput(input) {
+    return concat(uint32be(input.length), input);
+}
+async function concatKdf(secret, bits, value) {
+    const iterations = Math.ceil((bits >> 3) / 32);
+    const res = new Uint8Array(iterations * 32);
+    for(let iter = 0; iter < iterations; iter++){
+        const buf = new Uint8Array(4 + secret.length + value.length);
+        buf.set(uint32be(iter + 1));
+        buf.set(secret, 4);
+        buf.set(value, 4 + secret.length);
+        res.set(await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$digest$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])('sha256', buf), iter * 32);
+    }
+    return res.slice(0, bits >> 3);
+}
+}),
+"[project]/node_modules/jose/dist/node/esm/runtime/base64url.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "decode",
+    ()=>decode,
+    "decodeBase64",
+    ()=>decodeBase64,
+    "encode",
+    ()=>encode,
+    "encodeBase64",
+    ()=>encodeBase64
+]);
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$buffer__$5b$external$5d$__$28$node$3a$buffer$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:buffer [external] (node:buffer, cjs)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$buffer_utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/buffer_utils.js [app-rsc] (ecmascript)");
+;
+;
+function normalize(input) {
+    let encoded = input;
+    if (encoded instanceof Uint8Array) {
+        encoded = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$buffer_utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decoder"].decode(encoded);
+    }
+    return encoded;
+}
+const encode = (input)=>__TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$buffer__$5b$external$5d$__$28$node$3a$buffer$2c$__cjs$29$__["Buffer"].from(input).toString('base64url');
+const decodeBase64 = (input)=>new Uint8Array(__TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$buffer__$5b$external$5d$__$28$node$3a$buffer$2c$__cjs$29$__["Buffer"].from(input, 'base64'));
+const encodeBase64 = (input)=>__TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$buffer__$5b$external$5d$__$28$node$3a$buffer$2c$__cjs$29$__["Buffer"].from(input).toString('base64');
+;
+const decode = (input)=>new Uint8Array(__TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$buffer__$5b$external$5d$__$28$node$3a$buffer$2c$__cjs$29$__["Buffer"].from(normalize(input), 'base64url'));
+}),
+"[project]/node_modules/jose/dist/node/esm/util/base64url.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "decode",
+    ()=>decode,
+    "encode",
+    ()=>encode
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$base64url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/base64url.js [app-rsc] (ecmascript)");
+;
+const encode = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$base64url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["encode"];
+const decode = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$base64url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decode"];
+}),
+"[project]/node_modules/jose/dist/node/esm/lib/is_object.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>isObject
+]);
+function isObjectLike(value) {
+    return typeof value === 'object' && value !== null;
+}
+function isObject(input) {
+    if (!isObjectLike(input) || Object.prototype.toString.call(input) !== '[object Object]') {
+        return false;
+    }
+    if (Object.getPrototypeOf(input) === null) {
+        return true;
+    }
+    let proto = input;
+    while(Object.getPrototypeOf(proto) !== null){
+        proto = Object.getPrototypeOf(proto);
+    }
+    return Object.getPrototypeOf(input) === proto;
+}
+}),
+"[project]/node_modules/jose/dist/node/esm/util/errors.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "JOSEAlgNotAllowed",
+    ()=>JOSEAlgNotAllowed,
+    "JOSEError",
+    ()=>JOSEError,
+    "JOSENotSupported",
+    ()=>JOSENotSupported,
+    "JWEDecryptionFailed",
+    ()=>JWEDecryptionFailed,
+    "JWEInvalid",
+    ()=>JWEInvalid,
+    "JWKInvalid",
+    ()=>JWKInvalid,
+    "JWKSInvalid",
+    ()=>JWKSInvalid,
+    "JWKSMultipleMatchingKeys",
+    ()=>JWKSMultipleMatchingKeys,
+    "JWKSNoMatchingKey",
+    ()=>JWKSNoMatchingKey,
+    "JWKSTimeout",
+    ()=>JWKSTimeout,
+    "JWSInvalid",
+    ()=>JWSInvalid,
+    "JWSSignatureVerificationFailed",
+    ()=>JWSSignatureVerificationFailed,
+    "JWTClaimValidationFailed",
+    ()=>JWTClaimValidationFailed,
+    "JWTExpired",
+    ()=>JWTExpired,
+    "JWTInvalid",
+    ()=>JWTInvalid
+]);
+class JOSEError extends Error {
+    static code = 'ERR_JOSE_GENERIC';
+    code = 'ERR_JOSE_GENERIC';
+    constructor(message, options){
+        super(message, options);
+        this.name = this.constructor.name;
+        Error.captureStackTrace?.(this, this.constructor);
+    }
+}
+class JWTClaimValidationFailed extends JOSEError {
+    static code = 'ERR_JWT_CLAIM_VALIDATION_FAILED';
+    code = 'ERR_JWT_CLAIM_VALIDATION_FAILED';
+    claim;
+    reason;
+    payload;
+    constructor(message, payload, claim = 'unspecified', reason = 'unspecified'){
+        super(message, {
+            cause: {
+                claim,
+                reason,
+                payload
+            }
+        });
+        this.claim = claim;
+        this.reason = reason;
+        this.payload = payload;
+    }
+}
+class JWTExpired extends JOSEError {
+    static code = 'ERR_JWT_EXPIRED';
+    code = 'ERR_JWT_EXPIRED';
+    claim;
+    reason;
+    payload;
+    constructor(message, payload, claim = 'unspecified', reason = 'unspecified'){
+        super(message, {
+            cause: {
+                claim,
+                reason,
+                payload
+            }
+        });
+        this.claim = claim;
+        this.reason = reason;
+        this.payload = payload;
+    }
+}
+class JOSEAlgNotAllowed extends JOSEError {
+    static code = 'ERR_JOSE_ALG_NOT_ALLOWED';
+    code = 'ERR_JOSE_ALG_NOT_ALLOWED';
+}
+class JOSENotSupported extends JOSEError {
+    static code = 'ERR_JOSE_NOT_SUPPORTED';
+    code = 'ERR_JOSE_NOT_SUPPORTED';
+}
+class JWEDecryptionFailed extends JOSEError {
+    static code = 'ERR_JWE_DECRYPTION_FAILED';
+    code = 'ERR_JWE_DECRYPTION_FAILED';
+    constructor(message = 'decryption operation failed', options){
+        super(message, options);
+    }
+}
+class JWEInvalid extends JOSEError {
+    static code = 'ERR_JWE_INVALID';
+    code = 'ERR_JWE_INVALID';
+}
+class JWSInvalid extends JOSEError {
+    static code = 'ERR_JWS_INVALID';
+    code = 'ERR_JWS_INVALID';
+}
+class JWTInvalid extends JOSEError {
+    static code = 'ERR_JWT_INVALID';
+    code = 'ERR_JWT_INVALID';
+}
+class JWKInvalid extends JOSEError {
+    static code = 'ERR_JWK_INVALID';
+    code = 'ERR_JWK_INVALID';
+}
+class JWKSInvalid extends JOSEError {
+    static code = 'ERR_JWKS_INVALID';
+    code = 'ERR_JWKS_INVALID';
+}
+class JWKSNoMatchingKey extends JOSEError {
+    static code = 'ERR_JWKS_NO_MATCHING_KEY';
+    code = 'ERR_JWKS_NO_MATCHING_KEY';
+    constructor(message = 'no applicable key found in the JSON Web Key Set', options){
+        super(message, options);
+    }
+}
+class JWKSMultipleMatchingKeys extends JOSEError {
+    [Symbol.asyncIterator];
+    static code = 'ERR_JWKS_MULTIPLE_MATCHING_KEYS';
+    code = 'ERR_JWKS_MULTIPLE_MATCHING_KEYS';
+    constructor(message = 'multiple matching keys found in the JSON Web Key Set', options){
+        super(message, options);
+    }
+}
+class JWKSTimeout extends JOSEError {
+    static code = 'ERR_JWKS_TIMEOUT';
+    code = 'ERR_JWKS_TIMEOUT';
+    constructor(message = 'request timed out', options){
+        super(message, options);
+    }
+}
+class JWSSignatureVerificationFailed extends JOSEError {
+    static code = 'ERR_JWS_SIGNATURE_VERIFICATION_FAILED';
+    code = 'ERR_JWS_SIGNATURE_VERIFICATION_FAILED';
+    constructor(message = 'signature verification failed', options){
+        super(message, options);
+    }
+}
+}),
+"[project]/node_modules/jose/dist/node/esm/util/decode_jwt.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "decodeJwt",
+    ()=>decodeJwt
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$base64url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/util/base64url.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$buffer_utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/buffer_utils.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/is_object.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/util/errors.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+function decodeJwt(jwt) {
+    if (typeof jwt !== 'string') throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTInvalid"]('JWTs must use Compact JWS serialization, JWT must be a string');
+    const { 1: payload, length } = jwt.split('.');
+    if (length === 5) throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTInvalid"]('Only JWTs using Compact JWS serialization can be decoded');
+    if (length !== 3) throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTInvalid"]('Invalid JWT');
+    if (!payload) throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTInvalid"]('JWTs must contain a payload');
+    let decoded;
+    try {
+        decoded = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$base64url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decode"])(payload);
+    } catch  {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTInvalid"]('Failed to base64url decode the payload');
+    }
+    let result;
+    try {
+        result = JSON.parse(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$buffer_utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decoder"].decode(decoded));
+    } catch  {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTInvalid"]('Failed to parse the decoded payload as JSON');
+    }
+    if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(result)) throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTInvalid"]('Invalid JWT Claims Set');
+    return result;
+}
+}),
+"[project]/node_modules/jose/dist/node/esm/runtime/fetch_jwks.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>__TURBOPACK__default__export__
+]);
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$http__$5b$external$5d$__$28$node$3a$http$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:http [external] (node:http, cjs)");
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$https__$5b$external$5d$__$28$node$3a$https$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:https [external] (node:https, cjs)");
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$events__$5b$external$5d$__$28$node$3a$events$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:events [external] (node:events, cjs)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/util/errors.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$buffer_utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/buffer_utils.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+;
+const fetchJwks = async (url, timeout, options)=>{
+    let get;
+    switch(url.protocol){
+        case 'https:':
+            get = __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$https__$5b$external$5d$__$28$node$3a$https$2c$__cjs$29$__["get"];
+            break;
+        case 'http:':
+            get = __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$http__$5b$external$5d$__$28$node$3a$http$2c$__cjs$29$__["get"];
+            break;
+        default:
+            throw new TypeError('Unsupported URL protocol.');
+    }
+    const { agent, headers } = options;
+    const req = get(url.href, {
+        agent,
+        timeout,
+        headers
+    });
+    const [response] = await Promise.race([
+        (0, __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$events__$5b$external$5d$__$28$node$3a$events$2c$__cjs$29$__["once"])(req, 'response'),
+        (0, __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$events__$5b$external$5d$__$28$node$3a$events$2c$__cjs$29$__["once"])(req, 'timeout')
+    ]);
+    if (!response) {
+        req.destroy();
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWKSTimeout"]();
+    }
+    if (response.statusCode !== 200) {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JOSEError"]('Expected 200 OK from the JSON Web Key Set HTTP response');
+    }
+    const parts = [];
+    for await (const part of response){
+        parts.push(part);
+    }
+    try {
+        return JSON.parse(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$buffer_utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decoder"].decode((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$buffer_utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["concat"])(...parts)));
+    } catch  {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JOSEError"]('Failed to parse the JSON Web Key Set HTTP response as JSON');
+    }
+};
+const __TURBOPACK__default__export__ = fetchJwks;
+}),
+"[project]/node_modules/jose/dist/node/esm/runtime/webcrypto.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>__TURBOPACK__default__export__,
+    "isCryptoKey",
+    ()=>isCryptoKey
+]);
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:crypto [external] (node:crypto, cjs)");
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$util__$5b$external$5d$__$28$node$3a$util$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:util [external] (node:util, cjs)");
+;
+;
+const webcrypto = __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["webcrypto"];
+const __TURBOPACK__default__export__ = webcrypto;
+const isCryptoKey = (key)=>__TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$util__$5b$external$5d$__$28$node$3a$util$2c$__cjs$29$__["types"].isCryptoKey(key);
+}),
+"[project]/node_modules/jose/dist/node/esm/runtime/is_key_object.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>__TURBOPACK__default__export__
+]);
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$util__$5b$external$5d$__$28$node$3a$util$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:util [external] (node:util, cjs)");
+;
+const __TURBOPACK__default__export__ = (obj)=>__TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$util__$5b$external$5d$__$28$node$3a$util$2c$__cjs$29$__["types"].isKeyObject(obj);
+}),
+"[project]/node_modules/jose/dist/node/esm/lib/invalid_key_input.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>__TURBOPACK__default__export__,
+    "withAlg",
+    ()=>withAlg
+]);
+function message(msg, actual, ...types) {
+    types = types.filter(Boolean);
+    if (types.length > 2) {
+        const last = types.pop();
+        msg += `one of type ${types.join(', ')}, or ${last}.`;
+    } else if (types.length === 2) {
+        msg += `one of type ${types[0]} or ${types[1]}.`;
+    } else {
+        msg += `of type ${types[0]}.`;
+    }
+    if (actual == null) {
+        msg += ` Received ${actual}`;
+    } else if (typeof actual === 'function' && actual.name) {
+        msg += ` Received function ${actual.name}`;
+    } else if (typeof actual === 'object' && actual != null) {
+        if (actual.constructor?.name) {
+            msg += ` Received an instance of ${actual.constructor.name}`;
+        }
+    }
+    return msg;
+}
+const __TURBOPACK__default__export__ = (actual, ...types)=>{
+    return message('Key must be ', actual, ...types);
+};
+function withAlg(alg, actual, ...types) {
+    return message(`Key for the ${alg} algorithm must be `, actual, ...types);
+}
+}),
+"[project]/node_modules/jose/dist/node/esm/runtime/is_key_like.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>__TURBOPACK__default__export__,
+    "types",
+    ()=>types
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$webcrypto$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/webcrypto.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$is_key_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/is_key_object.js [app-rsc] (ecmascript)");
+;
+;
+const __TURBOPACK__default__export__ = (key)=>(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$is_key_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(key) || (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$webcrypto$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["isCryptoKey"])(key);
+const types = [
+    'KeyObject'
+];
+if (globalThis.CryptoKey || __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$webcrypto$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"]?.CryptoKey) {
+    types.push('CryptoKey');
+}
+;
+}),
+"[project]/node_modules/jose/dist/node/esm/runtime/asn1.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "fromPKCS8",
+    ()=>fromPKCS8,
+    "fromSPKI",
+    ()=>fromSPKI,
+    "fromX509",
+    ()=>fromX509,
+    "toPKCS8",
+    ()=>toPKCS8,
+    "toSPKI",
+    ()=>toSPKI
+]);
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:crypto [external] (node:crypto, cjs)");
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$buffer__$5b$external$5d$__$28$node$3a$buffer$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:buffer [external] (node:buffer, cjs)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$webcrypto$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/webcrypto.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$is_key_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/is_key_object.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$invalid_key_input$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/invalid_key_input.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$is_key_like$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/is_key_like.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+;
+;
+const genericExport = (keyType, keyFormat, key)=>{
+    let keyObject;
+    if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$webcrypto$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["isCryptoKey"])(key)) {
+        if (!key.extractable) {
+            throw new TypeError('CryptoKey is not extractable');
+        }
+        keyObject = __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["KeyObject"].from(key);
+    } else if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$is_key_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(key)) {
+        keyObject = key;
+    } else {
+        throw new TypeError((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$invalid_key_input$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(key, ...__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$is_key_like$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["types"]));
+    }
+    if (keyObject.type !== keyType) {
+        throw new TypeError(`key is not a ${keyType} key`);
+    }
+    return keyObject.export({
+        format: 'pem',
+        type: keyFormat
+    });
+};
+const toSPKI = (key)=>{
+    return genericExport('public', 'spki', key);
+};
+const toPKCS8 = (key)=>{
+    return genericExport('private', 'pkcs8', key);
+};
+const fromPKCS8 = (pem)=>(0, __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["createPrivateKey"])({
+        key: __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$buffer__$5b$external$5d$__$28$node$3a$buffer$2c$__cjs$29$__["Buffer"].from(pem.replace(/(?:-----(?:BEGIN|END) PRIVATE KEY-----|\s)/g, ''), 'base64'),
+        type: 'pkcs8',
+        format: 'der'
+    });
+const fromSPKI = (pem)=>(0, __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["createPublicKey"])({
+        key: __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$buffer__$5b$external$5d$__$28$node$3a$buffer$2c$__cjs$29$__["Buffer"].from(pem.replace(/(?:-----(?:BEGIN|END) PUBLIC KEY-----|\s)/g, ''), 'base64'),
+        type: 'spki',
+        format: 'der'
+    });
+const fromX509 = (pem)=>(0, __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["createPublicKey"])({
+        key: pem,
+        type: 'spki',
+        format: 'pem'
+    });
+}),
+"[project]/node_modules/jose/dist/node/esm/runtime/jwk_to_key.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>__TURBOPACK__default__export__
+]);
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:crypto [external] (node:crypto, cjs)");
+;
+const parse = (key)=>{
+    if (key.d) {
+        return (0, __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["createPrivateKey"])({
+            format: 'jwk',
+            key
+        });
+    }
+    return (0, __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["createPublicKey"])({
+        format: 'jwk',
+        key
+    });
+};
+const __TURBOPACK__default__export__ = parse;
+}),
+"[project]/node_modules/jose/dist/node/esm/key/import.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "importJWK",
+    ()=>importJWK,
+    "importPKCS8",
+    ()=>importPKCS8,
+    "importSPKI",
+    ()=>importSPKI,
+    "importX509",
+    ()=>importX509
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$base64url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/base64url.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$asn1$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/asn1.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$jwk_to_key$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/jwk_to_key.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/util/errors.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/is_object.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+;
+async function importSPKI(spki, alg, options) {
+    if (typeof spki !== 'string' || spki.indexOf('-----BEGIN PUBLIC KEY-----') !== 0) {
+        throw new TypeError('"spki" must be SPKI formatted string');
+    }
+    return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$asn1$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fromSPKI"])(spki, alg, options);
+}
+async function importX509(x509, alg, options) {
+    if (typeof x509 !== 'string' || x509.indexOf('-----BEGIN CERTIFICATE-----') !== 0) {
+        throw new TypeError('"x509" must be X.509 formatted string');
+    }
+    return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$asn1$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fromX509"])(x509, alg, options);
+}
+async function importPKCS8(pkcs8, alg, options) {
+    if (typeof pkcs8 !== 'string' || pkcs8.indexOf('-----BEGIN PRIVATE KEY-----') !== 0) {
+        throw new TypeError('"pkcs8" must be PKCS#8 formatted string');
+    }
+    return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$asn1$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fromPKCS8"])(pkcs8, alg, options);
+}
+async function importJWK(jwk, alg) {
+    if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(jwk)) {
+        throw new TypeError('JWK must be an object');
+    }
+    alg ||= jwk.alg;
+    switch(jwk.kty){
+        case 'oct':
+            if (typeof jwk.k !== 'string' || !jwk.k) {
+                throw new TypeError('missing "k" (Key Value) Parameter value');
+            }
+            return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$base64url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decode"])(jwk.k);
+        case 'RSA':
+            if ('oth' in jwk && jwk.oth !== undefined) {
+                throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JOSENotSupported"]('RSA JWK "oth" (Other Primes Info) Parameter value is not supported');
+            }
+        case 'EC':
+        case 'OKP':
+            return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$jwk_to_key$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])({
+                ...jwk,
+                alg
+            });
+        default:
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JOSENotSupported"]('Unsupported "kty" (Key Type) Parameter value');
+    }
+}
+}),
+"[project]/node_modules/jose/dist/node/esm/jwks/local.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "createLocalJWKSet",
+    ()=>createLocalJWKSet
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$key$2f$import$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/key/import.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/util/errors.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/is_object.js [app-rsc] (ecmascript)");
+;
+;
+;
+function getKtyFromAlg(alg) {
+    switch(typeof alg === 'string' && alg.slice(0, 2)){
+        case 'RS':
+        case 'PS':
+            return 'RSA';
+        case 'ES':
+            return 'EC';
+        case 'Ed':
+            return 'OKP';
+        default:
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JOSENotSupported"]('Unsupported "alg" value for a JSON Web Key Set');
+    }
+}
+function isJWKSLike(jwks) {
+    return jwks && typeof jwks === 'object' && Array.isArray(jwks.keys) && jwks.keys.every(isJWKLike);
+}
+function isJWKLike(key) {
+    return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(key);
+}
+function clone(obj) {
+    if (typeof structuredClone === 'function') {
+        return structuredClone(obj);
+    }
+    return JSON.parse(JSON.stringify(obj));
+}
+class LocalJWKSet {
+    _jwks;
+    _cached = new WeakMap();
+    constructor(jwks){
+        if (!isJWKSLike(jwks)) {
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWKSInvalid"]('JSON Web Key Set malformed');
+        }
+        this._jwks = clone(jwks);
+    }
+    async getKey(protectedHeader, token) {
+        const { alg, kid } = {
+            ...protectedHeader,
+            ...token?.header
+        };
+        const kty = getKtyFromAlg(alg);
+        const candidates = this._jwks.keys.filter((jwk)=>{
+            let candidate = kty === jwk.kty;
+            if (candidate && typeof kid === 'string') {
+                candidate = kid === jwk.kid;
+            }
+            if (candidate && typeof jwk.alg === 'string') {
+                candidate = alg === jwk.alg;
+            }
+            if (candidate && typeof jwk.use === 'string') {
+                candidate = jwk.use === 'sig';
+            }
+            if (candidate && Array.isArray(jwk.key_ops)) {
+                candidate = jwk.key_ops.includes('verify');
+            }
+            if (candidate) {
+                switch(alg){
+                    case 'ES256':
+                        candidate = jwk.crv === 'P-256';
+                        break;
+                    case 'ES256K':
+                        candidate = jwk.crv === 'secp256k1';
+                        break;
+                    case 'ES384':
+                        candidate = jwk.crv === 'P-384';
+                        break;
+                    case 'ES512':
+                        candidate = jwk.crv === 'P-521';
+                        break;
+                    case 'Ed25519':
+                        candidate = jwk.crv === 'Ed25519';
+                        break;
+                    case 'EdDSA':
+                        candidate = jwk.crv === 'Ed25519' || jwk.crv === 'Ed448';
+                        break;
+                }
+            }
+            return candidate;
+        });
+        const { 0: jwk, length } = candidates;
+        if (length === 0) {
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWKSNoMatchingKey"]();
+        }
+        if (length !== 1) {
+            const error = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWKSMultipleMatchingKeys"]();
+            const { _cached } = this;
+            error[Symbol.asyncIterator] = async function*() {
+                for (const jwk of candidates){
+                    try {
+                        yield await importWithAlgCache(_cached, jwk, alg);
+                    } catch  {}
+                }
+            };
+            throw error;
+        }
+        return importWithAlgCache(this._cached, jwk, alg);
+    }
+}
+async function importWithAlgCache(cache, jwk, alg) {
+    const cached = cache.get(jwk) || cache.set(jwk, {}).get(jwk);
+    if (cached[alg] === undefined) {
+        const key = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$key$2f$import$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["importJWK"])({
+            ...jwk,
+            ext: true
+        }, alg);
+        if (key instanceof Uint8Array || key.type !== 'public') {
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWKSInvalid"]('JSON Web Key Set members must be public keys');
+        }
+        cached[alg] = key;
+    }
+    return cached[alg];
+}
+function createLocalJWKSet(jwks) {
+    const set = new LocalJWKSet(jwks);
+    const localJWKSet = async (protectedHeader, token)=>set.getKey(protectedHeader, token);
+    Object.defineProperties(localJWKSet, {
+        jwks: {
+            value: ()=>clone(set._jwks),
+            enumerable: true,
+            configurable: false,
+            writable: false
+        }
+    });
+    return localJWKSet;
+}
+}),
+"[project]/node_modules/jose/dist/node/esm/jwks/remote.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "createRemoteJWKSet",
+    ()=>createRemoteJWKSet,
+    "experimental_jwksCache",
+    ()=>experimental_jwksCache,
+    "jwksCache",
+    ()=>jwksCache
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$fetch_jwks$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/fetch_jwks.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/util/errors.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$jwks$2f$local$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/jwks/local.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/is_object.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+function isCloudflareWorkers() {
+    return typeof WebSocketPair !== 'undefined' || typeof navigator !== 'undefined' && navigator.userAgent === 'Cloudflare-Workers' || typeof EdgeRuntime !== 'undefined' && EdgeRuntime === 'vercel';
+}
+let USER_AGENT;
+if (typeof navigator === 'undefined' || !navigator.userAgent?.startsWith?.('Mozilla/5.0 ')) {
+    const NAME = 'jose';
+    const VERSION = 'v5.10.0';
+    USER_AGENT = `${NAME}/${VERSION}`;
+}
+const jwksCache = Symbol();
+function isFreshJwksCache(input, cacheMaxAge) {
+    if (typeof input !== 'object' || input === null) {
+        return false;
+    }
+    if (!('uat' in input) || typeof input.uat !== 'number' || Date.now() - input.uat >= cacheMaxAge) {
+        return false;
+    }
+    if (!('jwks' in input) || !(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(input.jwks) || !Array.isArray(input.jwks.keys) || !Array.prototype.every.call(input.jwks.keys, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])) {
+        return false;
+    }
+    return true;
+}
+class RemoteJWKSet {
+    _url;
+    _timeoutDuration;
+    _cooldownDuration;
+    _cacheMaxAge;
+    _jwksTimestamp;
+    _pendingFetch;
+    _options;
+    _local;
+    _cache;
+    constructor(url, options){
+        if (!(url instanceof URL)) {
+            throw new TypeError('url must be an instance of URL');
+        }
+        this._url = new URL(url.href);
+        this._options = {
+            agent: options?.agent,
+            headers: options?.headers
+        };
+        this._timeoutDuration = typeof options?.timeoutDuration === 'number' ? options?.timeoutDuration : 5000;
+        this._cooldownDuration = typeof options?.cooldownDuration === 'number' ? options?.cooldownDuration : 30000;
+        this._cacheMaxAge = typeof options?.cacheMaxAge === 'number' ? options?.cacheMaxAge : 600000;
+        if (options?.[jwksCache] !== undefined) {
+            this._cache = options?.[jwksCache];
+            if (isFreshJwksCache(options?.[jwksCache], this._cacheMaxAge)) {
+                this._jwksTimestamp = this._cache.uat;
+                this._local = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$jwks$2f$local$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["createLocalJWKSet"])(this._cache.jwks);
+            }
+        }
+    }
+    coolingDown() {
+        return typeof this._jwksTimestamp === 'number' ? Date.now() < this._jwksTimestamp + this._cooldownDuration : false;
+    }
+    fresh() {
+        return typeof this._jwksTimestamp === 'number' ? Date.now() < this._jwksTimestamp + this._cacheMaxAge : false;
+    }
+    async getKey(protectedHeader, token) {
+        if (!this._local || !this.fresh()) {
+            await this.reload();
+        }
+        try {
+            return await this._local(protectedHeader, token);
+        } catch (err) {
+            if (err instanceof __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWKSNoMatchingKey"]) {
+                if (this.coolingDown() === false) {
+                    await this.reload();
+                    return this._local(protectedHeader, token);
+                }
+            }
+            throw err;
+        }
+    }
+    async reload() {
+        if (this._pendingFetch && isCloudflareWorkers()) {
+            this._pendingFetch = undefined;
+        }
+        const headers = new Headers(this._options.headers);
+        if (USER_AGENT && !headers.has('User-Agent')) {
+            headers.set('User-Agent', USER_AGENT);
+            this._options.headers = Object.fromEntries(headers.entries());
+        }
+        this._pendingFetch ||= (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$fetch_jwks$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(this._url, this._timeoutDuration, this._options).then((json)=>{
+            this._local = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$jwks$2f$local$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["createLocalJWKSet"])(json);
+            if (this._cache) {
+                this._cache.uat = Date.now();
+                this._cache.jwks = json;
+            }
+            this._jwksTimestamp = Date.now();
+            this._pendingFetch = undefined;
+        }).catch((err)=>{
+            this._pendingFetch = undefined;
+            throw err;
+        });
+        await this._pendingFetch;
+    }
+}
+function createRemoteJWKSet(url, options) {
+    const set = new RemoteJWKSet(url, options);
+    const remoteJWKSet = async (protectedHeader, token)=>set.getKey(protectedHeader, token);
+    Object.defineProperties(remoteJWKSet, {
+        coolingDown: {
+            get: ()=>set.coolingDown(),
+            enumerable: true,
+            configurable: false
+        },
+        fresh: {
+            get: ()=>set.fresh(),
+            enumerable: true,
+            configurable: false
+        },
+        reload: {
+            value: ()=>set.reload(),
+            enumerable: true,
+            configurable: false,
+            writable: false
+        },
+        reloading: {
+            get: ()=>!!set._pendingFetch,
+            enumerable: true,
+            configurable: false
+        },
+        jwks: {
+            value: ()=>set._local?.jwks(),
+            enumerable: true,
+            configurable: false,
+            writable: false
+        }
+    });
+    return remoteJWKSet;
+}
+const experimental_jwksCache = jwksCache;
+}),
+"[project]/node_modules/jose/dist/node/esm/runtime/dsa_digest.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>dsaDigest
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/util/errors.js [app-rsc] (ecmascript)");
+;
+function dsaDigest(alg) {
+    switch(alg){
+        case 'PS256':
+        case 'RS256':
+        case 'ES256':
+        case 'ES256K':
+            return 'sha256';
+        case 'PS384':
+        case 'RS384':
+        case 'ES384':
+            return 'sha384';
+        case 'PS512':
+        case 'RS512':
+        case 'ES512':
+            return 'sha512';
+        case 'Ed25519':
+        case 'EdDSA':
+            return undefined;
+        default:
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JOSENotSupported"](`alg ${alg} is not supported either by JOSE or your javascript runtime`);
+    }
+}
+}),
+"[project]/node_modules/jose/dist/node/esm/lib/is_jwk.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "isJWK",
+    ()=>isJWK,
+    "isPrivateJWK",
+    ()=>isPrivateJWK,
+    "isPublicJWK",
+    ()=>isPublicJWK,
+    "isSecretJWK",
+    ()=>isSecretJWK
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/is_object.js [app-rsc] (ecmascript)");
+;
+function isJWK(key) {
+    return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(key) && typeof key.kty === 'string';
+}
+function isPrivateJWK(key) {
+    return key.kty !== 'oct' && typeof key.d === 'string';
+}
+function isPublicJWK(key) {
+    return key.kty !== 'oct' && typeof key.d === 'undefined';
+}
+function isSecretJWK(key) {
+    return isJWK(key) && key.kty === 'oct' && typeof key.k === 'string';
+}
+}),
+"[project]/node_modules/jose/dist/node/esm/runtime/get_named_curve.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>__TURBOPACK__default__export__,
+    "weakMap",
+    ()=>weakMap
+]);
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:crypto [external] (node:crypto, cjs)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/util/errors.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$webcrypto$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/webcrypto.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$is_key_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/is_key_object.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$invalid_key_input$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/invalid_key_input.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$is_key_like$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/is_key_like.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_jwk$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/is_jwk.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+;
+;
+;
+const weakMap = new WeakMap();
+const namedCurveToJOSE = (namedCurve)=>{
+    switch(namedCurve){
+        case 'prime256v1':
+            return 'P-256';
+        case 'secp384r1':
+            return 'P-384';
+        case 'secp521r1':
+            return 'P-521';
+        case 'secp256k1':
+            return 'secp256k1';
+        default:
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JOSENotSupported"]('Unsupported key curve for this operation');
+    }
+};
+const getNamedCurve = (kee, raw)=>{
+    let key;
+    if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$webcrypto$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["isCryptoKey"])(kee)) {
+        key = __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["KeyObject"].from(kee);
+    } else if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$is_key_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(kee)) {
+        key = kee;
+    } else if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_jwk$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["isJWK"])(kee)) {
+        return kee.crv;
+    } else {
+        throw new TypeError((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$invalid_key_input$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(kee, ...__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$is_key_like$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["types"]));
+    }
+    if (key.type === 'secret') {
+        throw new TypeError('only "private" or "public" type keys can be used for this operation');
+    }
+    switch(key.asymmetricKeyType){
+        case 'ed25519':
+        case 'ed448':
+            return `Ed${key.asymmetricKeyType.slice(2)}`;
+        case 'x25519':
+        case 'x448':
+            return `X${key.asymmetricKeyType.slice(1)}`;
+        case 'ec':
+            {
+                const namedCurve = key.asymmetricKeyDetails.namedCurve;
+                if (raw) {
+                    return namedCurve;
+                }
+                return namedCurveToJOSE(namedCurve);
+            }
+        default:
+            throw new TypeError('Invalid asymmetric key type for this operation');
+    }
+};
+const __TURBOPACK__default__export__ = getNamedCurve;
+}),
+"[project]/node_modules/jose/dist/node/esm/runtime/check_key_length.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>__TURBOPACK__default__export__
+]);
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:crypto [external] (node:crypto, cjs)");
+;
+const __TURBOPACK__default__export__ = (key, alg)=>{
+    let modulusLength;
+    try {
+        if (key instanceof __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["KeyObject"]) {
+            modulusLength = key.asymmetricKeyDetails?.modulusLength;
+        } else {
+            modulusLength = Buffer.from(key.n, 'base64url').byteLength << 3;
+        }
+    } catch  {}
+    if (typeof modulusLength !== 'number' || modulusLength < 2048) {
+        throw new TypeError(`${alg} requires key modulusLength to be 2048 bits or larger`);
+    }
+};
+}),
+"[project]/node_modules/jose/dist/node/esm/runtime/node_key.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>keyForCrypto
+]);
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:crypto [external] (node:crypto, cjs)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$get_named_curve$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/get_named_curve.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/util/errors.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$check_key_length$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/check_key_length.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+const ecCurveAlgMap = new Map([
+    [
+        'ES256',
+        'P-256'
+    ],
+    [
+        'ES256K',
+        'secp256k1'
+    ],
+    [
+        'ES384',
+        'P-384'
+    ],
+    [
+        'ES512',
+        'P-521'
+    ]
+]);
+function keyForCrypto(alg, key) {
+    let asymmetricKeyType;
+    let asymmetricKeyDetails;
+    let isJWK;
+    if (key instanceof __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["KeyObject"]) {
+        asymmetricKeyType = key.asymmetricKeyType;
+        asymmetricKeyDetails = key.asymmetricKeyDetails;
+    } else {
+        isJWK = true;
+        switch(key.kty){
+            case 'RSA':
+                asymmetricKeyType = 'rsa';
+                break;
+            case 'EC':
+                asymmetricKeyType = 'ec';
+                break;
+            case 'OKP':
+                {
+                    if (key.crv === 'Ed25519') {
+                        asymmetricKeyType = 'ed25519';
+                        break;
+                    }
+                    if (key.crv === 'Ed448') {
+                        asymmetricKeyType = 'ed448';
+                        break;
+                    }
+                    throw new TypeError('Invalid key for this operation, its crv must be Ed25519 or Ed448');
+                }
+            default:
+                throw new TypeError('Invalid key for this operation, its kty must be RSA, OKP, or EC');
+        }
+    }
+    let options;
+    switch(alg){
+        case 'Ed25519':
+            if (asymmetricKeyType !== 'ed25519') {
+                throw new TypeError(`Invalid key for this operation, its asymmetricKeyType must be ed25519`);
+            }
+            break;
+        case 'EdDSA':
+            if (![
+                'ed25519',
+                'ed448'
+            ].includes(asymmetricKeyType)) {
+                throw new TypeError('Invalid key for this operation, its asymmetricKeyType must be ed25519 or ed448');
+            }
+            break;
+        case 'RS256':
+        case 'RS384':
+        case 'RS512':
+            if (asymmetricKeyType !== 'rsa') {
+                throw new TypeError('Invalid key for this operation, its asymmetricKeyType must be rsa');
+            }
+            (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$check_key_length$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(key, alg);
+            break;
+        case 'PS256':
+        case 'PS384':
+        case 'PS512':
+            if (asymmetricKeyType === 'rsa-pss') {
+                const { hashAlgorithm, mgf1HashAlgorithm, saltLength } = asymmetricKeyDetails;
+                const length = parseInt(alg.slice(-3), 10);
+                if (hashAlgorithm !== undefined && (hashAlgorithm !== `sha${length}` || mgf1HashAlgorithm !== hashAlgorithm)) {
+                    throw new TypeError(`Invalid key for this operation, its RSA-PSS parameters do not meet the requirements of "alg" ${alg}`);
+                }
+                if (saltLength !== undefined && saltLength > length >> 3) {
+                    throw new TypeError(`Invalid key for this operation, its RSA-PSS parameter saltLength does not meet the requirements of "alg" ${alg}`);
+                }
+            } else if (asymmetricKeyType !== 'rsa') {
+                throw new TypeError('Invalid key for this operation, its asymmetricKeyType must be rsa or rsa-pss');
+            }
+            (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$check_key_length$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(key, alg);
+            options = {
+                padding: __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["constants"].RSA_PKCS1_PSS_PADDING,
+                saltLength: __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["constants"].RSA_PSS_SALTLEN_DIGEST
+            };
+            break;
+        case 'ES256':
+        case 'ES256K':
+        case 'ES384':
+        case 'ES512':
+            {
+                if (asymmetricKeyType !== 'ec') {
+                    throw new TypeError('Invalid key for this operation, its asymmetricKeyType must be ec');
+                }
+                const actual = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$get_named_curve$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(key);
+                const expected = ecCurveAlgMap.get(alg);
+                if (actual !== expected) {
+                    throw new TypeError(`Invalid key curve for the algorithm, its curve must be ${expected}, got ${actual}`);
+                }
+                options = {
+                    dsaEncoding: 'ieee-p1363'
+                };
+                break;
+            }
+        default:
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JOSENotSupported"](`alg ${alg} is not supported either by JOSE or your javascript runtime`);
+    }
+    if (isJWK) {
+        return {
+            format: 'jwk',
+            key,
+            ...options
+        };
+    }
+    return options ? {
+        ...options,
+        key
+    } : key;
+}
+}),
+"[project]/node_modules/jose/dist/node/esm/runtime/hmac_digest.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>hmacDigest
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/util/errors.js [app-rsc] (ecmascript)");
+;
+function hmacDigest(alg) {
+    switch(alg){
+        case 'HS256':
+            return 'sha256';
+        case 'HS384':
+            return 'sha384';
+        case 'HS512':
+            return 'sha512';
+        default:
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JOSENotSupported"](`alg ${alg} is not supported either by JOSE or your javascript runtime`);
+    }
+}
+}),
+"[project]/node_modules/jose/dist/node/esm/lib/crypto_key.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "checkEncCryptoKey",
+    ()=>checkEncCryptoKey,
+    "checkSigCryptoKey",
+    ()=>checkSigCryptoKey
+]);
+function unusable(name, prop = 'algorithm.name') {
+    return new TypeError(`CryptoKey does not support this operation, its ${prop} must be ${name}`);
+}
+function isAlgorithm(algorithm, name) {
+    return algorithm.name === name;
+}
+function getHashLength(hash) {
+    return parseInt(hash.name.slice(4), 10);
+}
+function getNamedCurve(alg) {
+    switch(alg){
+        case 'ES256':
+            return 'P-256';
+        case 'ES384':
+            return 'P-384';
+        case 'ES512':
+            return 'P-521';
+        default:
+            throw new Error('unreachable');
+    }
+}
+function checkUsage(key, usages) {
+    if (usages.length && !usages.some((expected)=>key.usages.includes(expected))) {
+        let msg = 'CryptoKey does not support this operation, its usages must include ';
+        if (usages.length > 2) {
+            const last = usages.pop();
+            msg += `one of ${usages.join(', ')}, or ${last}.`;
+        } else if (usages.length === 2) {
+            msg += `one of ${usages[0]} or ${usages[1]}.`;
+        } else {
+            msg += `${usages[0]}.`;
+        }
+        throw new TypeError(msg);
+    }
+}
+function checkSigCryptoKey(key, alg, ...usages) {
+    switch(alg){
+        case 'HS256':
+        case 'HS384':
+        case 'HS512':
+            {
+                if (!isAlgorithm(key.algorithm, 'HMAC')) throw unusable('HMAC');
+                const expected = parseInt(alg.slice(2), 10);
+                const actual = getHashLength(key.algorithm.hash);
+                if (actual !== expected) throw unusable(`SHA-${expected}`, 'algorithm.hash');
+                break;
+            }
+        case 'RS256':
+        case 'RS384':
+        case 'RS512':
+            {
+                if (!isAlgorithm(key.algorithm, 'RSASSA-PKCS1-v1_5')) throw unusable('RSASSA-PKCS1-v1_5');
+                const expected = parseInt(alg.slice(2), 10);
+                const actual = getHashLength(key.algorithm.hash);
+                if (actual !== expected) throw unusable(`SHA-${expected}`, 'algorithm.hash');
+                break;
+            }
+        case 'PS256':
+        case 'PS384':
+        case 'PS512':
+            {
+                if (!isAlgorithm(key.algorithm, 'RSA-PSS')) throw unusable('RSA-PSS');
+                const expected = parseInt(alg.slice(2), 10);
+                const actual = getHashLength(key.algorithm.hash);
+                if (actual !== expected) throw unusable(`SHA-${expected}`, 'algorithm.hash');
+                break;
+            }
+        case 'EdDSA':
+            {
+                if (key.algorithm.name !== 'Ed25519' && key.algorithm.name !== 'Ed448') {
+                    throw unusable('Ed25519 or Ed448');
+                }
+                break;
+            }
+        case 'Ed25519':
+            {
+                if (!isAlgorithm(key.algorithm, 'Ed25519')) throw unusable('Ed25519');
+                break;
+            }
+        case 'ES256':
+        case 'ES384':
+        case 'ES512':
+            {
+                if (!isAlgorithm(key.algorithm, 'ECDSA')) throw unusable('ECDSA');
+                const expected = getNamedCurve(alg);
+                const actual = key.algorithm.namedCurve;
+                if (actual !== expected) throw unusable(expected, 'algorithm.namedCurve');
+                break;
+            }
+        default:
+            throw new TypeError('CryptoKey does not support this operation');
+    }
+    checkUsage(key, usages);
+}
+function checkEncCryptoKey(key, alg, ...usages) {
+    switch(alg){
+        case 'A128GCM':
+        case 'A192GCM':
+        case 'A256GCM':
+            {
+                if (!isAlgorithm(key.algorithm, 'AES-GCM')) throw unusable('AES-GCM');
+                const expected = parseInt(alg.slice(1, 4), 10);
+                const actual = key.algorithm.length;
+                if (actual !== expected) throw unusable(expected, 'algorithm.length');
+                break;
+            }
+        case 'A128KW':
+        case 'A192KW':
+        case 'A256KW':
+            {
+                if (!isAlgorithm(key.algorithm, 'AES-KW')) throw unusable('AES-KW');
+                const expected = parseInt(alg.slice(1, 4), 10);
+                const actual = key.algorithm.length;
+                if (actual !== expected) throw unusable(expected, 'algorithm.length');
+                break;
+            }
+        case 'ECDH':
+            {
+                switch(key.algorithm.name){
+                    case 'ECDH':
+                    case 'X25519':
+                    case 'X448':
+                        break;
+                    default:
+                        throw unusable('ECDH, X25519, or X448');
+                }
+                break;
+            }
+        case 'PBES2-HS256+A128KW':
+        case 'PBES2-HS384+A192KW':
+        case 'PBES2-HS512+A256KW':
+            if (!isAlgorithm(key.algorithm, 'PBKDF2')) throw unusable('PBKDF2');
+            break;
+        case 'RSA-OAEP':
+        case 'RSA-OAEP-256':
+        case 'RSA-OAEP-384':
+        case 'RSA-OAEP-512':
+            {
+                if (!isAlgorithm(key.algorithm, 'RSA-OAEP')) throw unusable('RSA-OAEP');
+                const expected = parseInt(alg.slice(9), 10) || 1;
+                const actual = getHashLength(key.algorithm.hash);
+                if (actual !== expected) throw unusable(`SHA-${expected}`, 'algorithm.hash');
+                break;
+            }
+        default:
+            throw new TypeError('CryptoKey does not support this operation');
+    }
+    checkUsage(key, usages);
+}
+}),
+"[project]/node_modules/jose/dist/node/esm/runtime/get_sign_verify_key.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>getSignVerifyKey
+]);
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:crypto [external] (node:crypto, cjs)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$webcrypto$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/webcrypto.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$crypto_key$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/crypto_key.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$invalid_key_input$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/invalid_key_input.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$is_key_like$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/is_key_like.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_jwk$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/is_jwk.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+;
+;
+function getSignVerifyKey(alg, key, usage) {
+    if (key instanceof Uint8Array) {
+        if (!alg.startsWith('HS')) {
+            throw new TypeError((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$invalid_key_input$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(key, ...__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$is_key_like$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["types"]));
+        }
+        return (0, __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["createSecretKey"])(key);
+    }
+    if (key instanceof __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["KeyObject"]) {
+        return key;
+    }
+    if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$webcrypto$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["isCryptoKey"])(key)) {
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$crypto_key$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["checkSigCryptoKey"])(key, alg, usage);
+        return __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["KeyObject"].from(key);
+    }
+    if (__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_jwk$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["isJWK"](key)) {
+        if (alg.startsWith('HS')) {
+            return (0, __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["createSecretKey"])(Buffer.from(key.k, 'base64url'));
+        }
+        return key;
+    }
+    throw new TypeError((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$invalid_key_input$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(key, ...__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$is_key_like$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["types"], 'Uint8Array', 'JSON Web Key'));
+}
+}),
+"[project]/node_modules/jose/dist/node/esm/runtime/sign.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>__TURBOPACK__default__export__
+]);
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:crypto [external] (node:crypto, cjs)");
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$util__$5b$external$5d$__$28$node$3a$util$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:util [external] (node:util, cjs)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$dsa_digest$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/dsa_digest.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$hmac_digest$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/hmac_digest.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$node_key$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/node_key.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$get_sign_verify_key$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/get_sign_verify_key.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+;
+;
+const oneShotSign = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$util__$5b$external$5d$__$28$node$3a$util$2c$__cjs$29$__["promisify"])(__TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["sign"]);
+const sign = async (alg, key, data)=>{
+    const k = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$get_sign_verify_key$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(alg, key, 'sign');
+    if (alg.startsWith('HS')) {
+        const hmac = __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["createHmac"]((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$hmac_digest$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(alg), k);
+        hmac.update(data);
+        return hmac.digest();
+    }
+    return oneShotSign((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$dsa_digest$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(alg), data, (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$node_key$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(alg, k));
+};
+const __TURBOPACK__default__export__ = sign;
+}),
+"[project]/node_modules/jose/dist/node/esm/runtime/verify.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>__TURBOPACK__default__export__
+]);
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:crypto [external] (node:crypto, cjs)");
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$util__$5b$external$5d$__$28$node$3a$util$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:util [external] (node:util, cjs)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$dsa_digest$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/dsa_digest.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$node_key$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/node_key.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$sign$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/sign.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$get_sign_verify_key$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/get_sign_verify_key.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+;
+;
+const oneShotVerify = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$util__$5b$external$5d$__$28$node$3a$util$2c$__cjs$29$__["promisify"])(__TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["verify"]);
+const verify = async (alg, key, signature, data)=>{
+    const k = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$get_sign_verify_key$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(alg, key, 'verify');
+    if (alg.startsWith('HS')) {
+        const expected = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$sign$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(alg, k, data);
+        const actual = signature;
+        try {
+            return __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["timingSafeEqual"](actual, expected);
+        } catch  {
+            return false;
+        }
+    }
+    const algorithm = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$dsa_digest$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(alg);
+    const keyInput = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$node_key$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(alg, k);
+    try {
+        return await oneShotVerify(algorithm, data, keyInput, signature);
+    } catch  {
+        return false;
+    }
+};
+const __TURBOPACK__default__export__ = verify;
+}),
+"[project]/node_modules/jose/dist/node/esm/lib/is_disjoint.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>__TURBOPACK__default__export__
+]);
+const isDisjoint = (...headers)=>{
+    const sources = headers.filter(Boolean);
+    if (sources.length === 0 || sources.length === 1) {
+        return true;
+    }
+    let acc;
+    for (const header of sources){
+        const parameters = Object.keys(header);
+        if (!acc || acc.size === 0) {
+            acc = new Set(parameters);
+            continue;
+        }
+        for (const parameter of parameters){
+            if (acc.has(parameter)) {
+                return false;
+            }
+            acc.add(parameter);
+        }
+    }
+    return true;
+};
+const __TURBOPACK__default__export__ = isDisjoint;
+}),
+"[project]/node_modules/jose/dist/node/esm/lib/check_key_type.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "checkKeyTypeWithJwk",
+    ()=>checkKeyTypeWithJwk,
+    "default",
+    ()=>__TURBOPACK__default__export__
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$invalid_key_input$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/invalid_key_input.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$is_key_like$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/is_key_like.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_jwk$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/is_jwk.js [app-rsc] (ecmascript)");
+;
+;
+;
+const tag = (key)=>key?.[Symbol.toStringTag];
+const jwkMatchesOp = (alg, key, usage)=>{
+    if (key.use !== undefined && key.use !== 'sig') {
+        throw new TypeError('Invalid key for this operation, when present its use must be sig');
+    }
+    if (key.key_ops !== undefined && key.key_ops.includes?.(usage) !== true) {
+        throw new TypeError(`Invalid key for this operation, when present its key_ops must include ${usage}`);
+    }
+    if (key.alg !== undefined && key.alg !== alg) {
+        throw new TypeError(`Invalid key for this operation, when present its alg must be ${alg}`);
+    }
+    return true;
+};
+const symmetricTypeCheck = (alg, key, usage, allowJwk)=>{
+    if (key instanceof Uint8Array) return;
+    if (allowJwk && __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_jwk$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["isJWK"](key)) {
+        if (__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_jwk$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["isSecretJWK"](key) && jwkMatchesOp(alg, key, usage)) return;
+        throw new TypeError(`JSON Web Key for symmetric algorithms must have JWK "kty" (Key Type) equal to "oct" and the JWK "k" (Key Value) present`);
+    }
+    if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$is_key_like$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(key)) {
+        throw new TypeError((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$invalid_key_input$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["withAlg"])(alg, key, ...__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$is_key_like$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["types"], 'Uint8Array', allowJwk ? 'JSON Web Key' : null));
+    }
+    if (key.type !== 'secret') {
+        throw new TypeError(`${tag(key)} instances for symmetric algorithms must be of type "secret"`);
+    }
+};
+const asymmetricTypeCheck = (alg, key, usage, allowJwk)=>{
+    if (allowJwk && __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_jwk$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["isJWK"](key)) {
+        switch(usage){
+            case 'sign':
+                if (__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_jwk$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["isPrivateJWK"](key) && jwkMatchesOp(alg, key, usage)) return;
+                throw new TypeError(`JSON Web Key for this operation be a private JWK`);
+            case 'verify':
+                if (__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_jwk$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["isPublicJWK"](key) && jwkMatchesOp(alg, key, usage)) return;
+                throw new TypeError(`JSON Web Key for this operation be a public JWK`);
+        }
+    }
+    if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$is_key_like$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(key)) {
+        throw new TypeError((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$invalid_key_input$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["withAlg"])(alg, key, ...__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$is_key_like$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["types"], allowJwk ? 'JSON Web Key' : null));
+    }
+    if (key.type === 'secret') {
+        throw new TypeError(`${tag(key)} instances for asymmetric algorithms must not be of type "secret"`);
+    }
+    if (usage === 'sign' && key.type === 'public') {
+        throw new TypeError(`${tag(key)} instances for asymmetric algorithm signing must be of type "private"`);
+    }
+    if (usage === 'decrypt' && key.type === 'public') {
+        throw new TypeError(`${tag(key)} instances for asymmetric algorithm decryption must be of type "private"`);
+    }
+    if (key.algorithm && usage === 'verify' && key.type === 'private') {
+        throw new TypeError(`${tag(key)} instances for asymmetric algorithm verifying must be of type "public"`);
+    }
+    if (key.algorithm && usage === 'encrypt' && key.type === 'private') {
+        throw new TypeError(`${tag(key)} instances for asymmetric algorithm encryption must be of type "public"`);
+    }
+};
+function checkKeyType(allowJwk, alg, key, usage) {
+    const symmetric = alg.startsWith('HS') || alg === 'dir' || alg.startsWith('PBES2') || /^A\d{3}(?:GCM)?KW$/.test(alg);
+    if (symmetric) {
+        symmetricTypeCheck(alg, key, usage, allowJwk);
+    } else {
+        asymmetricTypeCheck(alg, key, usage, allowJwk);
+    }
+}
+const __TURBOPACK__default__export__ = checkKeyType.bind(undefined, false);
+const checkKeyTypeWithJwk = checkKeyType.bind(undefined, true);
+}),
+"[project]/node_modules/jose/dist/node/esm/lib/validate_crit.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>__TURBOPACK__default__export__
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/util/errors.js [app-rsc] (ecmascript)");
+;
+function validateCrit(Err, recognizedDefault, recognizedOption, protectedHeader, joseHeader) {
+    if (joseHeader.crit !== undefined && protectedHeader?.crit === undefined) {
+        throw new Err('"crit" (Critical) Header Parameter MUST be integrity protected');
+    }
+    if (!protectedHeader || protectedHeader.crit === undefined) {
+        return new Set();
+    }
+    if (!Array.isArray(protectedHeader.crit) || protectedHeader.crit.length === 0 || protectedHeader.crit.some((input)=>typeof input !== 'string' || input.length === 0)) {
+        throw new Err('"crit" (Critical) Header Parameter MUST be an array of non-empty strings when present');
+    }
+    let recognized;
+    if (recognizedOption !== undefined) {
+        recognized = new Map([
+            ...Object.entries(recognizedOption),
+            ...recognizedDefault.entries()
+        ]);
+    } else {
+        recognized = recognizedDefault;
+    }
+    for (const parameter of protectedHeader.crit){
+        if (!recognized.has(parameter)) {
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JOSENotSupported"](`Extension Header Parameter "${parameter}" is not recognized`);
+        }
+        if (joseHeader[parameter] === undefined) {
+            throw new Err(`Extension Header Parameter "${parameter}" is missing`);
+        }
+        if (recognized.get(parameter) && protectedHeader[parameter] === undefined) {
+            throw new Err(`Extension Header Parameter "${parameter}" MUST be integrity protected`);
+        }
+    }
+    return new Set(protectedHeader.crit);
+}
+const __TURBOPACK__default__export__ = validateCrit;
+}),
+"[project]/node_modules/jose/dist/node/esm/lib/validate_algorithms.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>__TURBOPACK__default__export__
+]);
+const validateAlgorithms = (option, algorithms)=>{
+    if (algorithms !== undefined && (!Array.isArray(algorithms) || algorithms.some((s)=>typeof s !== 'string'))) {
+        throw new TypeError(`"${option}" option must be an array of strings`);
+    }
+    if (!algorithms) {
+        return undefined;
+    }
+    return new Set(algorithms);
+};
+const __TURBOPACK__default__export__ = validateAlgorithms;
+}),
+"[project]/node_modules/jose/dist/node/esm/jws/flattened/verify.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "flattenedVerify",
+    ()=>flattenedVerify
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$base64url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/base64url.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$verify$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/runtime/verify.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/util/errors.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$buffer_utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/buffer_utils.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_disjoint$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/is_disjoint.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/is_object.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$check_key_type$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/check_key_type.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$validate_crit$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/validate_crit.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$validate_algorithms$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/validate_algorithms.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_jwk$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/is_jwk.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$key$2f$import$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/key/import.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+async function flattenedVerify(jws, key, options) {
+    if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(jws)) {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWSInvalid"]('Flattened JWS must be an object');
+    }
+    if (jws.protected === undefined && jws.header === undefined) {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWSInvalid"]('Flattened JWS must have either of the "protected" or "header" members');
+    }
+    if (jws.protected !== undefined && typeof jws.protected !== 'string') {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWSInvalid"]('JWS Protected Header incorrect type');
+    }
+    if (jws.payload === undefined) {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWSInvalid"]('JWS Payload missing');
+    }
+    if (typeof jws.signature !== 'string') {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWSInvalid"]('JWS Signature missing or incorrect type');
+    }
+    if (jws.header !== undefined && !(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(jws.header)) {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWSInvalid"]('JWS Unprotected Header incorrect type');
+    }
+    let parsedProt = {};
+    if (jws.protected) {
+        try {
+            const protectedHeader = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$base64url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decode"])(jws.protected);
+            parsedProt = JSON.parse(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$buffer_utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decoder"].decode(protectedHeader));
+        } catch  {
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWSInvalid"]('JWS Protected Header is invalid');
+        }
+    }
+    if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_disjoint$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(parsedProt, jws.header)) {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWSInvalid"]('JWS Protected and JWS Unprotected Header Parameter names must be disjoint');
+    }
+    const joseHeader = {
+        ...parsedProt,
+        ...jws.header
+    };
+    const extensions = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$validate_crit$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWSInvalid"], new Map([
+        [
+            'b64',
+            true
+        ]
+    ]), options?.crit, parsedProt, joseHeader);
+    let b64 = true;
+    if (extensions.has('b64')) {
+        b64 = parsedProt.b64;
+        if (typeof b64 !== 'boolean') {
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWSInvalid"]('The "b64" (base64url-encode payload) Header Parameter must be a boolean');
+        }
+    }
+    const { alg } = joseHeader;
+    if (typeof alg !== 'string' || !alg) {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWSInvalid"]('JWS "alg" (Algorithm) Header Parameter missing or invalid');
+    }
+    const algorithms = options && (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$validate_algorithms$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])('algorithms', options.algorithms);
+    if (algorithms && !algorithms.has(alg)) {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JOSEAlgNotAllowed"]('"alg" (Algorithm) Header Parameter value not allowed');
+    }
+    if (b64) {
+        if (typeof jws.payload !== 'string') {
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWSInvalid"]('JWS Payload must be a string');
+        }
+    } else if (typeof jws.payload !== 'string' && !(jws.payload instanceof Uint8Array)) {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWSInvalid"]('JWS Payload must be a string or an Uint8Array instance');
+    }
+    let resolvedKey = false;
+    if (typeof key === 'function') {
+        key = await key(parsedProt, jws);
+        resolvedKey = true;
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$check_key_type$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["checkKeyTypeWithJwk"])(alg, key, 'verify');
+        if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_jwk$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["isJWK"])(key)) {
+            key = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$key$2f$import$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["importJWK"])(key, alg);
+        }
+    } else {
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$check_key_type$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["checkKeyTypeWithJwk"])(alg, key, 'verify');
+    }
+    const data = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$buffer_utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["concat"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$buffer_utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["encoder"].encode(jws.protected ?? ''), __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$buffer_utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["encoder"].encode('.'), typeof jws.payload === 'string' ? __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$buffer_utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["encoder"].encode(jws.payload) : jws.payload);
+    let signature;
+    try {
+        signature = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$base64url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decode"])(jws.signature);
+    } catch  {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWSInvalid"]('Failed to base64url decode the signature');
+    }
+    const verified = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$verify$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(alg, key, signature, data);
+    if (!verified) {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWSSignatureVerificationFailed"]();
+    }
+    let payload;
+    if (b64) {
+        try {
+            payload = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$runtime$2f$base64url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decode"])(jws.payload);
+        } catch  {
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWSInvalid"]('Failed to base64url decode the payload');
+        }
+    } else if (typeof jws.payload === 'string') {
+        payload = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$buffer_utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["encoder"].encode(jws.payload);
+    } else {
+        payload = jws.payload;
+    }
+    const result = {
+        payload
+    };
+    if (jws.protected !== undefined) {
+        result.protectedHeader = parsedProt;
+    }
+    if (jws.header !== undefined) {
+        result.unprotectedHeader = jws.header;
+    }
+    if (resolvedKey) {
+        return {
+            ...result,
+            key
+        };
+    }
+    return result;
+}
+}),
+"[project]/node_modules/jose/dist/node/esm/jws/compact/verify.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "compactVerify",
+    ()=>compactVerify
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$jws$2f$flattened$2f$verify$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/jws/flattened/verify.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/util/errors.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$buffer_utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/buffer_utils.js [app-rsc] (ecmascript)");
+;
+;
+;
+async function compactVerify(jws, key, options) {
+    if (jws instanceof Uint8Array) {
+        jws = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$buffer_utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decoder"].decode(jws);
+    }
+    if (typeof jws !== 'string') {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWSInvalid"]('Compact JWS must be a string or Uint8Array');
+    }
+    const { 0: protectedHeader, 1: payload, 2: signature, length } = jws.split('.');
+    if (length !== 3) {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWSInvalid"]('Invalid Compact JWS');
+    }
+    const verified = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$jws$2f$flattened$2f$verify$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["flattenedVerify"])({
+        payload,
+        protected: protectedHeader,
+        signature
+    }, key, options);
+    const result = {
+        payload: verified.payload,
+        protectedHeader: verified.protectedHeader
+    };
+    if (typeof key === 'function') {
+        return {
+            ...result,
+            key: verified.key
+        };
+    }
+    return result;
+}
+}),
+"[project]/node_modules/jose/dist/node/esm/lib/epoch.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>__TURBOPACK__default__export__
+]);
+const __TURBOPACK__default__export__ = (date)=>Math.floor(date.getTime() / 1000);
+}),
+"[project]/node_modules/jose/dist/node/esm/lib/secs.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>__TURBOPACK__default__export__
+]);
+const minute = 60;
+const hour = minute * 60;
+const day = hour * 24;
+const week = day * 7;
+const year = day * 365.25;
+const REGEX = /^(\+|\-)? ?(\d+|\d+\.\d+) ?(seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)(?: (ago|from now))?$/i;
+const __TURBOPACK__default__export__ = (str)=>{
+    const matched = REGEX.exec(str);
+    if (!matched || matched[4] && matched[1]) {
+        throw new TypeError('Invalid time period format');
+    }
+    const value = parseFloat(matched[2]);
+    const unit = matched[3].toLowerCase();
+    let numericDate;
+    switch(unit){
+        case 'sec':
+        case 'secs':
+        case 'second':
+        case 'seconds':
+        case 's':
+            numericDate = Math.round(value);
+            break;
+        case 'minute':
+        case 'minutes':
+        case 'min':
+        case 'mins':
+        case 'm':
+            numericDate = Math.round(value * minute);
+            break;
+        case 'hour':
+        case 'hours':
+        case 'hr':
+        case 'hrs':
+        case 'h':
+            numericDate = Math.round(value * hour);
+            break;
+        case 'day':
+        case 'days':
+        case 'd':
+            numericDate = Math.round(value * day);
+            break;
+        case 'week':
+        case 'weeks':
+        case 'w':
+            numericDate = Math.round(value * week);
+            break;
+        default:
+            numericDate = Math.round(value * year);
+            break;
+    }
+    if (matched[1] === '-' || matched[4] === 'ago') {
+        return -numericDate;
+    }
+    return numericDate;
+};
+}),
+"[project]/node_modules/jose/dist/node/esm/lib/jwt_claims_set.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>__TURBOPACK__default__export__
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/util/errors.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$buffer_utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/buffer_utils.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$epoch$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/epoch.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$secs$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/secs.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/is_object.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+;
+const normalizeTyp = (value)=>value.toLowerCase().replace(/^application\//, '');
+const checkAudiencePresence = (audPayload, audOption)=>{
+    if (typeof audPayload === 'string') {
+        return audOption.includes(audPayload);
+    }
+    if (Array.isArray(audPayload)) {
+        return audOption.some(Set.prototype.has.bind(new Set(audPayload)));
+    }
+    return false;
+};
+const __TURBOPACK__default__export__ = (protectedHeader, encodedPayload, options = {})=>{
+    let payload;
+    try {
+        payload = JSON.parse(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$buffer_utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decoder"].decode(encodedPayload));
+    } catch  {}
+    if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$is_object$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(payload)) {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTInvalid"]('JWT Claims Set must be a top-level JSON object');
+    }
+    const { typ } = options;
+    if (typ && (typeof protectedHeader.typ !== 'string' || normalizeTyp(protectedHeader.typ) !== normalizeTyp(typ))) {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTClaimValidationFailed"]('unexpected "typ" JWT header value', payload, 'typ', 'check_failed');
+    }
+    const { requiredClaims = [], issuer, subject, audience, maxTokenAge } = options;
+    const presenceCheck = [
+        ...requiredClaims
+    ];
+    if (maxTokenAge !== undefined) presenceCheck.push('iat');
+    if (audience !== undefined) presenceCheck.push('aud');
+    if (subject !== undefined) presenceCheck.push('sub');
+    if (issuer !== undefined) presenceCheck.push('iss');
+    for (const claim of new Set(presenceCheck.reverse())){
+        if (!(claim in payload)) {
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTClaimValidationFailed"](`missing required "${claim}" claim`, payload, claim, 'missing');
+        }
+    }
+    if (issuer && !(Array.isArray(issuer) ? issuer : [
+        issuer
+    ]).includes(payload.iss)) {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTClaimValidationFailed"]('unexpected "iss" claim value', payload, 'iss', 'check_failed');
+    }
+    if (subject && payload.sub !== subject) {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTClaimValidationFailed"]('unexpected "sub" claim value', payload, 'sub', 'check_failed');
+    }
+    if (audience && !checkAudiencePresence(payload.aud, typeof audience === 'string' ? [
+        audience
+    ] : audience)) {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTClaimValidationFailed"]('unexpected "aud" claim value', payload, 'aud', 'check_failed');
+    }
+    let tolerance;
+    switch(typeof options.clockTolerance){
+        case 'string':
+            tolerance = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$secs$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(options.clockTolerance);
+            break;
+        case 'number':
+            tolerance = options.clockTolerance;
+            break;
+        case 'undefined':
+            tolerance = 0;
+            break;
+        default:
+            throw new TypeError('Invalid clockTolerance option type');
+    }
+    const { currentDate } = options;
+    const now = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$epoch$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(currentDate || new Date());
+    if ((payload.iat !== undefined || maxTokenAge) && typeof payload.iat !== 'number') {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTClaimValidationFailed"]('"iat" claim must be a number', payload, 'iat', 'invalid');
+    }
+    if (payload.nbf !== undefined) {
+        if (typeof payload.nbf !== 'number') {
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTClaimValidationFailed"]('"nbf" claim must be a number', payload, 'nbf', 'invalid');
+        }
+        if (payload.nbf > now + tolerance) {
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTClaimValidationFailed"]('"nbf" claim timestamp check failed', payload, 'nbf', 'check_failed');
+        }
+    }
+    if (payload.exp !== undefined) {
+        if (typeof payload.exp !== 'number') {
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTClaimValidationFailed"]('"exp" claim must be a number', payload, 'exp', 'invalid');
+        }
+        if (payload.exp <= now - tolerance) {
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTExpired"]('"exp" claim timestamp check failed', payload, 'exp', 'check_failed');
+        }
+    }
+    if (maxTokenAge) {
+        const age = now - payload.iat;
+        const max = typeof maxTokenAge === 'number' ? maxTokenAge : (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$secs$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(maxTokenAge);
+        if (age - tolerance > max) {
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTExpired"]('"iat" claim timestamp check failed (too far in the past)', payload, 'iat', 'check_failed');
+        }
+        if (age < 0 - tolerance) {
+            throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTClaimValidationFailed"]('"iat" claim timestamp check failed (it should be in the past)', payload, 'iat', 'check_failed');
+        }
+    }
+    return payload;
+};
+}),
+"[project]/node_modules/jose/dist/node/esm/jwt/verify.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "jwtVerify",
+    ()=>jwtVerify
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$jws$2f$compact$2f$verify$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/jws/compact/verify.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$jwt_claims_set$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/lib/jwt_claims_set.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/util/errors.js [app-rsc] (ecmascript)");
+;
+;
+;
+async function jwtVerify(jwt, key, options) {
+    const verified = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$jws$2f$compact$2f$verify$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["compactVerify"])(jwt, key, options);
+    if (verified.protectedHeader.crit?.includes('b64') && verified.protectedHeader.b64 === false) {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["JWTInvalid"]('JWTs MUST NOT use unencoded payload');
+    }
+    const payload = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$lib$2f$jwt_claims_set$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"])(verified.protectedHeader, verified.payload, options);
+    const result = {
+        payload,
+        protectedHeader: verified.protectedHeader
+    };
+    if (typeof key === 'function') {
+        return {
+            ...result,
+            key: verified.key
+        };
+    }
+    return result;
+}
+}),
+"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/env-variables.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "WORKOS_API_HOSTNAME",
+    ()=>WORKOS_API_HOSTNAME,
+    "WORKOS_API_HTTPS",
+    ()=>WORKOS_API_HTTPS,
+    "WORKOS_API_KEY",
+    ()=>WORKOS_API_KEY,
+    "WORKOS_API_PORT",
+    ()=>WORKOS_API_PORT,
+    "WORKOS_CLAIM_TOKEN",
+    ()=>WORKOS_CLAIM_TOKEN,
+    "WORKOS_CLIENT_ID",
+    ()=>WORKOS_CLIENT_ID,
+    "WORKOS_COOKIE_DOMAIN",
+    ()=>WORKOS_COOKIE_DOMAIN,
+    "WORKOS_COOKIE_MAX_AGE",
+    ()=>WORKOS_COOKIE_MAX_AGE,
+    "WORKOS_COOKIE_NAME",
+    ()=>WORKOS_COOKIE_NAME,
+    "WORKOS_COOKIE_PASSWORD",
+    ()=>WORKOS_COOKIE_PASSWORD,
+    "WORKOS_COOKIE_SAMESITE",
+    ()=>WORKOS_COOKIE_SAMESITE,
+    "WORKOS_REDIRECT_URI",
+    ()=>WORKOS_REDIRECT_URI
+]);
+/* istanbul ignore file */ function getEnvVariable(name) {
+    return process.env[name];
+}
+// Optional env variables
+const WORKOS_API_HOSTNAME = getEnvVariable('WORKOS_API_HOSTNAME');
+const WORKOS_API_HTTPS = getEnvVariable('WORKOS_API_HTTPS');
+const WORKOS_API_PORT = getEnvVariable('WORKOS_API_PORT');
+const WORKOS_COOKIE_DOMAIN = getEnvVariable('WORKOS_COOKIE_DOMAIN');
+const WORKOS_COOKIE_MAX_AGE = getEnvVariable('WORKOS_COOKIE_MAX_AGE');
+const WORKOS_COOKIE_NAME = getEnvVariable('WORKOS_COOKIE_NAME');
+const WORKOS_COOKIE_SAMESITE = getEnvVariable('WORKOS_COOKIE_SAMESITE');
+const WORKOS_CLAIM_TOKEN = getEnvVariable('WORKOS_CLAIM_TOKEN');
+// Required env variables
+const WORKOS_API_KEY = getEnvVariable('WORKOS_API_KEY') ?? '';
+const WORKOS_CLIENT_ID = getEnvVariable('WORKOS_CLIENT_ID') ?? '';
+const WORKOS_COOKIE_PASSWORD = getEnvVariable('WORKOS_COOKIE_PASSWORD') ?? '';
+const WORKOS_REDIRECT_URI = ("TURBOPACK compile-time value", "http://localhost:3000/api/auth/callback") ?? '';
+;
+}),
+"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/cookie.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "getCookieOptions",
+    ()=>getCookieOptions,
+    "getJwtCookie",
+    ()=>getJwtCookie,
+    "getPKCECookieOptions",
+    ()=>getPKCECookieOptions
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/env-variables.js [app-rsc] (ecmascript)");
+;
+const JWT_COOKIE_MAX_AGE = 30; // seconds
+const JWT_COOKIE_NAME = 'workos-access-token';
+function assertValidSamSite(sameSite) {
+    if (![
+        'lax',
+        'strict',
+        'none'
+    ].includes(sameSite.toLowerCase())) {
+        throw new Error(`Invalid SameSite value: ${sameSite}`);
+    }
+}
+function getCookieOptions(redirectUri, asString = false, expired = false) {
+    const sameSite = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_COOKIE_SAMESITE"] || 'lax';
+    assertValidSamSite(sameSite);
+    const urlString = redirectUri || __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_REDIRECT_URI"];
+    // Default to secure=true when no URL available (production default)
+    // Developers should set WORKOS_REDIRECT_URI for proper local dev
+    let secure;
+    if (sameSite.toLowerCase() === 'none') {
+        secure = true;
+    } else if (urlString) {
+        try {
+            const url = new URL(urlString);
+            secure = url.protocol === 'https:';
+        } catch  {
+            // Invalid URL - default to secure
+            secure = true;
+        }
+    } else {
+        secure = true;
+    }
+    let maxAge;
+    if (expired) {
+        maxAge = 0;
+    } else if (__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_COOKIE_MAX_AGE"]) {
+        const parsed = parseInt(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_COOKIE_MAX_AGE"], 10);
+        maxAge = Number.isFinite(parsed) ? parsed : 60 * 60 * 24 * 400;
+    } else {
+        maxAge = 60 * 60 * 24 * 400;
+    }
+    if (asString) {
+        const capitalizedSameSite = sameSite.charAt(0).toUpperCase() + sameSite.slice(1).toLowerCase();
+        const parts = [
+            'Path=/',
+            'HttpOnly',
+            `SameSite=${capitalizedSameSite}`,
+            `Max-Age=${maxAge}`
+        ];
+        if (__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_COOKIE_DOMAIN"]) {
+            parts.push(`Domain=${__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_COOKIE_DOMAIN"]}`);
+        }
+        if (secure) {
+            parts.push('Secure');
+        }
+        return parts.join('; ');
+    }
+    return {
+        path: '/',
+        httpOnly: true,
+        secure,
+        sameSite,
+        // Defaults to 400 days, the maximum allowed by Chrome
+        // It's fine to have a long cookie expiry date as the access/refresh tokens
+        // act as the actual time-limited aspects of the session.
+        maxAge,
+        domain: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_COOKIE_DOMAIN"] || ''
+    };
+}
+function getPKCECookieOptions(redirectUri, asString = false, expired = false) {
+    if (asString) {
+        const options = getCookieOptions(redirectUri, true, expired);
+        return options.replace(/SameSite=Strict/i, 'SameSite=Lax');
+    }
+    const options = getCookieOptions(redirectUri);
+    return {
+        ...options,
+        sameSite: options.sameSite.toLowerCase() === 'strict' ? 'lax' : options.sameSite
+    };
+}
+function getJwtCookie(body, requestUrlOrRedirectUri, expired) {
+    const cookie = `${JWT_COOKIE_NAME}=${expired ? '' : body ?? ''}`;
+    // Force Secure in production, except for localhost
+    let secure = false;
+    const isProduction = ("TURBOPACK compile-time value", "development") === 'production';
+    if (requestUrlOrRedirectUri) {
+        try {
+            const url = new URL(requestUrlOrRedirectUri);
+            const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+            // In production, always use Secure unless explicitly on localhost
+            secure = ("TURBOPACK compile-time falsy", 0) ? "TURBOPACK unreachable" : url.protocol === 'https:';
+        } catch  {
+            // If URL parsing fails, default to secure in production
+            secure = isProduction;
+            // If it's not a valid URL, fall back to WORKOS_REDIRECT_URI
+            const fallbackUrl = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_REDIRECT_URI"];
+            if (fallbackUrl) {
+                try {
+                    const url = new URL(fallbackUrl);
+                    secure = url.protocol === 'https:';
+                } catch  {
+                    secure = false;
+                }
+            }
+        }
+    } else if (__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_REDIRECT_URI"]) {
+        // No URL provided, check WORKOS_REDIRECT_URI
+        try {
+            const url = new URL(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_REDIRECT_URI"]);
+            secure = url.protocol === 'https:';
+        } catch  {
+            secure = false;
+        }
+    }
+    const maxAge = expired ? 0 : JWT_COOKIE_MAX_AGE;
+    const parts = [
+        cookie,
+        'SameSite=Lax',
+        `Max-Age=${maxAge}`
+    ];
+    // Only add Secure flag if on HTTPS
+    if (secure) {
+        parts.push('Secure');
+    }
+    if (expired) {
+        parts.push(`Expires=${new Date(0).toUTCString()}`);
+    }
+    return parts.join('; ');
+}
+}),
+"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/utils.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "errorResponseWithFallback",
+    ()=>errorResponseWithFallback,
+    "lazy",
+    ()=>lazy,
+    "redirectWithFallback",
+    ()=>redirectWithFallback,
+    "setCachePreventionHeaders",
+    ()=>setCachePreventionHeaders
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/server.js [app-rsc] (ecmascript)");
+;
+function setCachePreventionHeaders(headers) {
+    headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate, max-age=0');
+    headers.set('x-middleware-cache', 'no-cache');
+}
+function redirectWithFallback(redirectUri, headers) {
+    const newHeaders = headers ? new Headers(headers) : new Headers();
+    newHeaders.set('Location', redirectUri);
+    // Fall back to standard Response if NextResponse is not available.
+    // This is to support Next.js 13.
+    return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["NextResponse"]?.redirect ? __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["NextResponse"].redirect(redirectUri, {
+        headers
+    }) : new Response(null, {
+        status: 307,
+        headers: newHeaders
+    });
+}
+function errorResponseWithFallback(errorBody) {
+    // Fall back to standard Response if NextResponse is not available.
+    // This is to support Next.js 13.
+    return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["NextResponse"]?.json ? __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["NextResponse"].json(errorBody, {
+        status: 500
+    }) : new Response(JSON.stringify(errorBody), {
+        status: 500,
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+}
+function lazy(fn) {
+    let called = false;
+    let result;
+    return ()=>{
+        if (!called) {
+            result = fn();
+            called = true;
+        }
+        return result;
+    };
+}
+}),
+"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/workos.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "VERSION",
+    ()=>VERSION,
+    "getWorkOS",
+    ()=>getWorkOS
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$node$2f$lib$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/node/lib/index.mjs [app-rsc] (ecmascript) <locals>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/env-variables.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/utils.js [app-rsc] (ecmascript)");
+;
+;
+;
+const VERSION = '2.14.0';
+const options = {
+    apiHostname: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_API_HOSTNAME"],
+    https: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_API_HTTPS"] ? __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_API_HTTPS"] === 'true' : true,
+    port: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_API_PORT"] ? parseInt(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_API_PORT"]) : undefined,
+    appInfo: {
+        name: 'authkit/nextjs',
+        version: VERSION
+    }
+};
+const getWorkOS = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["lazy"])(()=>new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$node$2f$lib$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$locals$3e$__["WorkOS"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_API_KEY"], options));
+}),
+"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/get-authorization-url.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "getAuthorizationUrl",
+    ()=>getAuthorizationUrl
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$iron$2d$session$2f$dist$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/iron-session/dist/index.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/headers.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/env-variables.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$workos$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/workos.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+async function fetchClaimNonce(baseURL) {
+    try {
+        const response = await fetch(`${baseURL}/x/one-shot-environments/claim-nonces`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                client_id: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_CLIENT_ID"],
+                claim_token: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_CLAIM_TOKEN"]
+            })
+        });
+        if (!response.ok) {
+            if (response.status !== 409) {
+                console.warn(`[authkit-nextjs]: Failed to exchange WORKOS_CLAIM_TOKEN (${response.status}). Try removing WORKOS_CLAIM_TOKEN from your environment variables.`);
+            }
+            return null;
+        }
+        const data = await response.json();
+        return data.nonce;
+    } catch (error) {
+        console.warn('[authkit-nextjs]: Failed to exchange WORKOS_CLAIM_TOKEN. Try removing WORKOS_CLAIM_TOKEN from your environment variables.', error);
+        return null;
+    }
+}
+async function getAuthorizationUrl({ returnPathname, screenHint, organizationId, loginHint, prompt, state: customState, redirectUri } = {}) {
+    const redirectUriToUse = await (async ()=>{
+        if (redirectUri) {
+            return redirectUri;
+        }
+        const headersList = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["headers"])();
+        return headersList.get('x-redirect-uri') ?? undefined;
+    })();
+    const pkce = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$workos$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getWorkOS"])().pkce.generate();
+    const claimNonce = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_CLAIM_TOKEN"] ? await fetchClaimNonce((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$workos$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getWorkOS"])().baseURL) : null;
+    const state = {
+        nonce: crypto.randomUUID(),
+        codeVerifier: pkce.codeVerifier,
+        customState,
+        returnPathname
+    };
+    const sealedState = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$iron$2d$session$2f$dist$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sealData"])(state, {
+        password: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_COOKIE_PASSWORD"],
+        ttl: 600
+    });
+    const url = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$workos$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getWorkOS"])().userManagement.getAuthorizationUrl({
+        provider: 'authkit',
+        clientId: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_CLIENT_ID"],
+        redirectUri: redirectUriToUse ?? __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_REDIRECT_URI"],
+        screenHint,
+        organizationId,
+        loginHint,
+        prompt,
+        state: sealedState,
+        codeChallenge: pkce.codeChallenge,
+        codeChallengeMethod: pkce.codeChallengeMethod,
+        ...claimNonce && {
+            claimNonce
+        }
+    });
+    return {
+        url,
+        sealedState
+    };
+}
+;
+}),
+"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/interfaces.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "StateSchema",
+    ()=>StateSchema
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$valibot$2f$dist$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/valibot/dist/index.mjs [app-rsc] (ecmascript)");
+;
+const StateSchema = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$valibot$2f$dist$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["object"]({
+    nonce: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$valibot$2f$dist$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["string"](),
+    customState: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$valibot$2f$dist$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["optional"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$valibot$2f$dist$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["string"]()),
+    returnPathname: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$valibot$2f$dist$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["optional"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$valibot$2f$dist$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["string"]()),
+    codeVerifier: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$valibot$2f$dist$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["string"]()
+});
+}),
+"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/pkce.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "PKCE_COOKIE_NAME",
+    ()=>PKCE_COOKIE_NAME,
+    "getStateFromPKCECookieValue",
+    ()=>getStateFromPKCECookieValue,
+    "setPKCECookie",
+    ()=>setPKCECookie
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$iron$2d$session$2f$dist$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/iron-session/dist/index.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/headers.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$valibot$2f$dist$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/valibot/dist/index.mjs [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$cookie$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/cookie.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/env-variables.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$interfaces$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/interfaces.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+;
+;
+const PKCE_COOKIE_NAME = 'wos-auth-verifier';
+const PKCE_COOKIE_MAX_AGE = 600; // 10 minutes
+async function setPKCECookie(sealedState) {
+    const nextCookies = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["cookies"])();
+    const { domain, path, sameSite, secure } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$cookie$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getPKCECookieOptions"])();
+    nextCookies.set(PKCE_COOKIE_NAME, sealedState, {
+        domain,
+        path,
+        sameSite,
+        secure,
+        httpOnly: true,
+        maxAge: PKCE_COOKIE_MAX_AGE
+    });
+}
+async function getStateFromPKCECookieValue(cookieValue) {
+    // NOTE: TypeScript compiler won't flag if we Seal different data in than we Unseal
+    // Also, this function is not in a critically-high-performance path, so runtime validation
+    // is an acceptable tradeoff for increased security and type-safety
+    const unsealed = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$iron$2d$session$2f$dist$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["unsealData"])(cookieValue, {
+        password: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_COOKIE_PASSWORD"]
+    });
+    return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$valibot$2f$dist$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["parse"](__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$interfaces$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["StateSchema"], unsealed);
+}
+}),
+"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/jwt.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "decodeJwt",
+    ()=>decodeJwt
+]);
+/**
+ * Decodes a base64url encoded string
+ * @param input The base64url string to decode
+ * @returns The decoded string
+ */ function decodeBase64Url(input) {
+    const base64 = input.replace(/-/g, '+').replace(/_/g, '/');
+    const padding = '='.repeat((4 - base64.length % 4) % 4);
+    return atob(base64 + padding);
+}
+function decodeJwt(token) {
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+        throw new Error('Invalid JWT format');
+    }
+    try {
+        const header = JSON.parse(decodeBase64Url(parts[0]));
+        const payload = JSON.parse(decodeBase64Url(parts[1]));
+        return {
+            header,
+            payload
+        };
+    } catch (error) {
+        throw new Error(`Failed to decode JWT: ${error instanceof Error ? error.message : String(error)}`);
+    }
+}
+}),
+"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/errors.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "AuthKitError",
+    ()=>AuthKitError,
+    "TokenRefreshError",
+    ()=>TokenRefreshError,
+    "getSessionErrorContext",
+    ()=>getSessionErrorContext
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$jwt$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/jwt.js [app-rsc] (ecmascript)");
+;
+class AuthKitError extends Error {
+    data;
+    constructor(message, cause, data){
+        super(message);
+        this.name = 'AuthKitError';
+        this.cause = cause;
+        this.data = data;
+    }
+}
+class TokenRefreshError extends AuthKitError {
+    userId;
+    sessionId;
+    constructor(message, cause, context){
+        super(message, cause);
+        this.name = 'TokenRefreshError';
+        this.userId = context?.userId;
+        this.sessionId = context?.sessionId;
+    }
+}
+function getSessionErrorContext(session) {
+    if (!session?.accessToken) {
+        return {};
+    }
+    try {
+        const { payload } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$jwt$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decodeJwt"])(session.accessToken);
+        return {
+            userId: payload.sub,
+            sessionId: payload.sid
+        };
+    } catch  {
+        return {};
+    }
+}
+}),
+"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/middleware-helpers.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "AUTHKIT_REQUEST_HEADERS",
+    ()=>AUTHKIT_REQUEST_HEADERS,
+    "applyResponseHeaders",
+    ()=>applyResponseHeaders,
+    "handleAuthkitHeaders",
+    ()=>handleAuthkitHeaders,
+    "handleAuthkitProxy",
+    ()=>handleAuthkitProxy,
+    "isAuthkitRequestHeader",
+    ()=>isAuthkitRequestHeader,
+    "partitionAuthkitHeaders",
+    ()=>partitionAuthkitHeaders
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/server.js [app-rsc] (ecmascript)");
+;
+const AUTHKIT_REQUEST_HEADERS = [
+    'x-workos-middleware',
+    'x-url',
+    'x-redirect-uri',
+    'x-sign-up-paths',
+    'x-workos-session'
+];
+const ALLOWED_RESPONSE_HEADERS = [
+    'set-cookie',
+    'cache-control',
+    'vary',
+    'www-authenticate',
+    'proxy-authenticate',
+    'link',
+    'x-middleware-cache'
+];
+const MULTI_VALUE_HEADERS = [
+    'set-cookie',
+    'www-authenticate',
+    'proxy-authenticate',
+    'link'
+];
+function isAuthkitRequestHeader(name) {
+    const lower = name.toLowerCase();
+    return AUTHKIT_REQUEST_HEADERS.includes(lower) || lower.startsWith('x-workos-');
+}
+function setHeader(headers, name, value) {
+    const lower = name.toLowerCase();
+    if (MULTI_VALUE_HEADERS.includes(lower)) {
+        headers.append(name, value);
+    } else if (lower === 'vary') {
+        const existing = headers.get(name);
+        const merged = new Set([
+            ...existing ? existing.split(',').map((v)=>v.trim()) : [],
+            ...value.split(',').map((v)=>v.trim())
+        ]);
+        headers.set(name, [
+            ...merged
+        ].join(', '));
+    } else {
+        headers.set(name, value);
+    }
+}
+function partitionAuthkitHeaders(request, authkitHeaders) {
+    const headers = new Headers(authkitHeaders);
+    const requestHeaders = new Headers(request.headers);
+    // Snapshot keys before iterating, since we delete headers during the loop
+    const requestHeaderKeys = Array.from(requestHeaders.keys());
+    for (const name of requestHeaderKeys){
+        if (isAuthkitRequestHeader(name)) {
+            requestHeaders.delete(name);
+        }
+    }
+    for (const headerName of AUTHKIT_REQUEST_HEADERS){
+        const value = headers.get(headerName);
+        if (value != null) {
+            requestHeaders.set(headerName, value);
+        }
+    }
+    // Build response headers from allowlist only
+    const responseHeaders = new Headers();
+    for (const [name, value] of headers){
+        const lower = name.toLowerCase();
+        if (!isAuthkitRequestHeader(lower) && ALLOWED_RESPONSE_HEADERS.includes(lower)) {
+            setHeader(responseHeaders, name, value);
+        }
+    }
+    // Auto-add cache-control when setting cookies
+    if (responseHeaders.has('set-cookie') && !responseHeaders.has('cache-control')) {
+        responseHeaders.set('cache-control', 'no-store');
+    }
+    return {
+        requestHeaders,
+        responseHeaders
+    };
+}
+function applyResponseHeaders(response, responseHeaders) {
+    for (const [name, value] of responseHeaders){
+        setHeader(response.headers, name, value);
+    }
+    return response;
+}
+function handleAuthkitProxy(request, authkitHeaders, options = {}) {
+    const { requestHeaders, responseHeaders } = partitionAuthkitHeaders(request, authkitHeaders);
+    const { redirect, redirectStatus } = options;
+    if (redirect != null && redirect !== '') {
+        let redirectUrl;
+        try {
+            redirectUrl = redirect instanceof URL ? redirect : new URL(redirect, request.url);
+        } catch  {
+            throw new Error(`Invalid redirect URL: "${redirect}". Must be a valid absolute or relative URL.`);
+        }
+        const method = request.method.toUpperCase();
+        const status = redirectStatus ?? (method === 'GET' || method === 'HEAD' ? 307 : 303);
+        return applyResponseHeaders(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["NextResponse"].redirect(redirectUrl, status), responseHeaders);
+    }
+    return applyResponseHeaders(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["NextResponse"].next({
+        request: {
+            headers: requestHeaders
+        }
+    }), responseHeaders);
+}
+const handleAuthkitHeaders = handleAuthkitProxy;
+}),
+"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+/* __next_internal_action_entry_do_not_use__ [{"400af4facbb546493fefe4808c85f1eb3d1a87a263":{"name":"encryptSession"},"403b3b1112051e5ed5d1bf6cb84a58cfbb2c1daa5b":{"name":"withAuth"},"407c0e0dc26d6cbf827683cf6c853abe84ea319085":{"name":"getTokenClaims"},"40c1e4a4b89da547c3774e9e0412de7af5ee599b94":{"name":"refreshSession"},"40f6e28c82e6c1995e3d503d03d61df3f79e07036b":{"name":"getSessionFromCookie"},"608d86609ef8aade3fac0f3c1068675618d325ee8d":{"name":"updateSession"},"60a78ac18381095a1462b901bc755518a1526e723a":{"name":"saveSession"},"7e65046db0118808a31cc7b5d1ee927564933a5fe5":{"name":"updateSessionMiddleware"}},"node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js",""] */ __turbopack_context__.s([
+    "encryptSession",
+    ()=>encryptSession,
+    "getSessionFromCookie",
+    ()=>getSessionFromCookie,
+    "getTokenClaims",
+    ()=>getTokenClaims,
+    "refreshSession",
+    ()=>refreshSession,
+    "saveSession",
+    ()=>saveSession,
+    "updateSession",
+    ()=>updateSession,
+    "updateSessionMiddleware",
+    ()=>updateSessionMiddleware,
+    "withAuth",
+    ()=>withAuth
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/build/webpack/loaders/next-flight-loader/server-reference.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$iron$2d$session$2f$dist$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/iron-session/dist/index.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$jwks$2f$remote$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/jwks/remote.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$decode_jwt$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/util/decode_jwt.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$jwt$2f$verify$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/jwt/verify.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/headers.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$api$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/node_modules/next/dist/api/navigation.react-server.js [app-rsc] (ecmascript) <locals>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$components$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/client/components/navigation.react-server.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$cookie$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/cookie.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/env-variables.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/errors.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$get$2d$authorization$2d$url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/get-authorization-url.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$pkce$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/pkce.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$workos$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/workos.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$path$2d$to$2d$regexp$2f$dist$2e$es2015$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/path-to-regexp/dist.es2015/index.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$middleware$2d$helpers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/middleware-helpers.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/utils.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/build/webpack/loaders/next-flight-loader/action-validate.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+function appendPKCESetCookieHeader(headers, sealedState, requestUrl) {
+    headers.append('Set-Cookie', `${__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$pkce$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["PKCE_COOKIE_NAME"]}=${sealedState}; ${(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$cookie$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getPKCECookieOptions"])(requestUrl, true)}`);
+}
+const sessionHeaderName = 'x-workos-session';
+const middlewareHeaderName = 'x-workos-middleware';
+const signUpPathsHeaderName = 'x-sign-up-paths';
+const jwtCookieName = 'workos-access-token';
+const JWKS = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["lazy"])(()=>(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$jwks$2f$remote$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["createRemoteJWKSet"])(new URL((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$workos$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getWorkOS"])().userManagement.getJwksUrl(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_CLIENT_ID"]))));
+/**
+ * Applies cache security headers with Vary header deduplication.
+ * Only applies headers if the request is authenticated (has session, cookie, or Authorization header).
+ * Used in middleware where existing Vary headers may already be present.
+ * @param headers - The Headers object to set the cache security headers on.
+ * @param request - The NextRequest object to check for authentication.
+ * @param sessionData - Optional session data to check for authentication.
+ */ function applyCacheSecurityHeaders(headers, request, sessionData) {
+    const cookieName = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_COOKIE_NAME"] || 'wos-session';
+    // Only apply cache headers for authenticated requests
+    if (!sessionData?.accessToken && !request.cookies.has(cookieName) && !request.headers.has('authorization')) {
+        return;
+    }
+    const varyValues = new Set([
+        'cookie'
+    ]);
+    if (request.headers.has('authorization')) {
+        varyValues.add('authorization');
+    }
+    const currentVary = headers.get('Vary');
+    if (currentVary) {
+        currentVary.split(',').forEach((v)=>{
+            const trimmed = v.trim().toLowerCase();
+            if (trimmed) varyValues.add(trimmed);
+        });
+    }
+    headers.set('Vary', Array.from(varyValues).map((v)=>v.charAt(0).toUpperCase() + v.slice(1)).join(', '));
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$utils$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["setCachePreventionHeaders"])(headers);
+}
+/**
+ * Determines if a request is for an initial document load (not API/RSC/prefetch)
+ */ function isInitialDocumentRequest(request) {
+    const accept = request.headers.get('accept') || '';
+    const isDocumentRequest = accept.includes('text/html');
+    const isRSCRequest = request.headers.has('RSC') || request.headers.has('Next-Router-State-Tree');
+    const isPrefetch = request.headers.get('Purpose') === 'prefetch' || request.headers.get('Sec-Purpose') === 'prefetch' || request.headers.has('Next-Router-Prefetch');
+    return isDocumentRequest && !isRSCRequest && !isPrefetch;
+}
+async function encryptSession(session) {
+    return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$iron$2d$session$2f$dist$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sealData"])(session, {
+        password: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_COOKIE_PASSWORD"],
+        ttl: 0
+    });
+}
+async function updateSessionMiddleware(request, debug, middlewareAuth, redirectUri, signUpPaths, eagerAuth = false) {
+    if (!redirectUri && !__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_REDIRECT_URI"]) {
+        throw new Error('You must provide a redirect URI in the AuthKit middleware or in the environment variables.');
+    }
+    if (!__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_COOKIE_PASSWORD"] || __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_COOKIE_PASSWORD"].length < 32) {
+        throw new Error('You must provide a valid cookie password that is at least 32 characters in the environment variables.');
+    }
+    let url;
+    if (redirectUri) {
+        url = new URL(redirectUri);
+    } else {
+        url = new URL(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_REDIRECT_URI"]);
+    }
+    if (middlewareAuth.enabled && url.pathname === request.nextUrl.pathname && !middlewareAuth.unauthenticatedPaths.includes(url.pathname)) {
+        // In the case where:
+        // - We're using middleware auth mode
+        // - The redirect URI is in the middleware matcher
+        // - The redirect URI isn't in the unauthenticatedPaths array
+        //
+        // then we would get stuck in a login loop due to the redirect happening before the session is set.
+        // It's likely that the user accidentally forgot to add the path to unauthenticatedPaths, so we add it here.
+        middlewareAuth.unauthenticatedPaths.push(url.pathname);
+    }
+    const matchedPaths = middlewareAuth.unauthenticatedPaths.filter((pathGlob)=>{
+        const pathRegex = getMiddlewareAuthPathRegex(pathGlob);
+        return pathRegex.exec(request.nextUrl.pathname);
+    });
+    const { session, headers, authorizationUrl } = await updateSession(request, {
+        debug,
+        redirectUri,
+        screenHint: getScreenHint(signUpPaths, request.nextUrl.pathname),
+        eagerAuth
+    });
+    // Record the sign up paths so we can use them later
+    if (signUpPaths.length > 0) {
+        headers.set(signUpPathsHeaderName, signUpPaths.join(','));
+    }
+    applyCacheSecurityHeaders(headers, request, session);
+    // If the user is logged out and this path isn't on the allowlist for logged out paths, redirect to AuthKit.
+    if (middlewareAuth.enabled && matchedPaths.length === 0 && !session.user) {
+        if (debug) {
+            console.log(`Unauthenticated user on protected route ${request.url}, redirecting to AuthKit`);
+        }
+        return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$middleware$2d$helpers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["handleAuthkitHeaders"])(request, headers, {
+            redirect: authorizationUrl
+        });
+    }
+    return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$middleware$2d$helpers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["handleAuthkitHeaders"])(request, headers);
+}
+async function updateSession(request, options = {
+    debug: false
+}) {
+    const session = await getSessionFromCookie(request);
+    // Since we're setting the headers in the response, we need to create a new Headers object without copying
+    // the request headers.
+    // See https://github.com/vercel/next.js/issues/50659#issuecomment-2333990159
+    const newRequestHeaders = new Headers();
+    // Record that the request was routed through the middleware so we can check later for DX purposes
+    newRequestHeaders.set(middlewareHeaderName, 'true');
+    // We store the current request url in a custom header, so we can always have access to it
+    // This is because on hard navigations we don't have access to `next-url` but need to get the current
+    // `pathname` to be able to return the users where they came from before sign-in
+    newRequestHeaders.set('x-url', request.url);
+    if (options.redirectUri) {
+        // Store the redirect URI in a custom header, so we always have access to it and so that subsequent
+        // calls to `getAuthorizationUrl` will use the same redirect URI
+        newRequestHeaders.set('x-redirect-uri', options.redirectUri);
+    }
+    newRequestHeaders.delete(sessionHeaderName);
+    if (!session) {
+        if (options.debug) {
+            console.log('No session found from cookie');
+        }
+        const { url: authorizationUrl, sealedState } = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$get$2d$authorization$2d$url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getAuthorizationUrl"])({
+            returnPathname: getReturnPathname(request.url),
+            redirectUri: options.redirectUri || __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_REDIRECT_URI"],
+            screenHint: options.screenHint
+        });
+        appendPKCESetCookieHeader(newRequestHeaders, sealedState, request.url);
+        return {
+            session: {
+                user: null
+            },
+            headers: newRequestHeaders,
+            authorizationUrl
+        };
+    }
+    const hasValidSession = await verifyAccessToken(session.accessToken);
+    const cookieName = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_COOKIE_NAME"] || 'wos-session';
+    applyCacheSecurityHeaders(newRequestHeaders, request, session);
+    if (hasValidSession) {
+        newRequestHeaders.set(sessionHeaderName, request.cookies.get(cookieName).value);
+        const { sid: sessionId, org_id: organizationId, role, roles, permissions, entitlements, feature_flags: featureFlags } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$decode_jwt$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decodeJwt"])(session.accessToken);
+        // Set JWT cookie if eagerAuth is enabled
+        // Only set on document requests (initial page loads), not on API/RSC requests
+        if (options.eagerAuth && isInitialDocumentRequest(request)) {
+            const existingJwtCookie = request.cookies.get(jwtCookieName);
+            // Only set if cookie doesn't exist or has different value
+            if (!existingJwtCookie || existingJwtCookie.value !== session.accessToken) {
+                newRequestHeaders.append('Set-Cookie', (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$cookie$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getJwtCookie"])(session.accessToken, request.url));
+            }
+        }
+        return {
+            session: {
+                sessionId,
+                user: session.user,
+                organizationId,
+                role,
+                roles,
+                permissions,
+                entitlements,
+                featureFlags,
+                impersonator: session.impersonator,
+                accessToken: session.accessToken
+            },
+            headers: newRequestHeaders
+        };
+    }
+    try {
+        if (options.debug) {
+            // istanbul ignore next
+            console.log(`Session invalid. ${session.accessToken ? `Refreshing access token that ends in ${session.accessToken.slice(-10)}` : 'Access token missing.'}`);
+        }
+        const { org_id: organizationIdFromAccessToken } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$decode_jwt$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decodeJwt"])(session.accessToken);
+        const { accessToken, refreshToken, user, impersonator } = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$workos$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getWorkOS"])().userManagement.authenticateWithRefreshToken({
+            clientId: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_CLIENT_ID"],
+            refreshToken: session.refreshToken,
+            organizationId: organizationIdFromAccessToken
+        });
+        if (options.debug) {
+            console.log('Session successfully refreshed');
+        }
+        // Encrypt session with new access and refresh tokens
+        const encryptedSession = await encryptSession({
+            accessToken,
+            refreshToken,
+            user,
+            impersonator
+        });
+        newRequestHeaders.append('Set-Cookie', `${cookieName}=${encryptedSession}; ${(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$cookie$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getCookieOptions"])(request.url, true)}`);
+        newRequestHeaders.set(sessionHeaderName, encryptedSession);
+        // Set JWT cookie if eagerAuth is enabled
+        // Only set on document requests (initial page loads), not on API/RSC requests
+        if (options.eagerAuth && isInitialDocumentRequest(request)) {
+            newRequestHeaders.append('Set-Cookie', (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$cookie$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getJwtCookie"])(accessToken, request.url));
+        }
+        const { sid: sessionId, org_id: organizationId, role, roles, permissions, entitlements, feature_flags: featureFlags } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$decode_jwt$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decodeJwt"])(accessToken);
+        options.onSessionRefreshSuccess?.({
+            accessToken,
+            user,
+            impersonator,
+            organizationId
+        });
+        return {
+            session: {
+                sessionId,
+                user,
+                organizationId,
+                role,
+                roles,
+                permissions,
+                entitlements,
+                featureFlags,
+                impersonator,
+                accessToken
+            },
+            headers: newRequestHeaders
+        };
+    } catch (e) {
+        if (options.debug) {
+            console.log('Failed to refresh. Deleting cookie.', e);
+        }
+        // When we need to delete a cookie, return it as a header as you can't delete cookies from edge middleware
+        const deleteCookie = `${cookieName}=; Expires=${new Date(0).toUTCString()}; ${(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$cookie$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getCookieOptions"])(request.url, true, true)}`;
+        newRequestHeaders.append('Set-Cookie', deleteCookie);
+        // Delete JWT cookie if eagerAuth is enabled
+        if (options.eagerAuth) {
+            const deleteJwtCookie = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$cookie$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getJwtCookie"])(null, request.url, true);
+            newRequestHeaders.append('Set-Cookie', deleteJwtCookie);
+        }
+        options.onSessionRefreshError?.({
+            error: e,
+            request
+        });
+        const { url: authorizationUrl, sealedState } = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$get$2d$authorization$2d$url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getAuthorizationUrl"])({
+            returnPathname: getReturnPathname(request.url),
+            redirectUri: options.redirectUri || __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_REDIRECT_URI"]
+        });
+        appendPKCESetCookieHeader(newRequestHeaders, sealedState, request.url);
+        return {
+            session: {
+                user: null
+            },
+            headers: newRequestHeaders,
+            authorizationUrl
+        };
+    }
+}
+async function refreshSession({ organizationId: nextOrganizationId, ensureSignedIn = false } = {}) {
+    const session = await getSessionFromCookie();
+    if (!session) {
+        if (ensureSignedIn) {
+            await redirectToSignIn();
+        }
+        return {
+            user: null
+        };
+    }
+    const { org_id: organizationIdFromAccessToken } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$decode_jwt$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decodeJwt"])(session.accessToken);
+    let refreshResult;
+    try {
+        refreshResult = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$workos$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getWorkOS"])().userManagement.authenticateWithRefreshToken({
+            clientId: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_CLIENT_ID"],
+            refreshToken: session.refreshToken,
+            organizationId: nextOrganizationId ?? organizationIdFromAccessToken
+        });
+    } catch (error) {
+        throw new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["TokenRefreshError"](`Failed to refresh session: ${error instanceof Error ? error.message : String(error)}`, error, (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$errors$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getSessionErrorContext"])(session));
+    }
+    const headersList = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["headers"])();
+    const url = headersList.get('x-url');
+    await saveSession(refreshResult, url || __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_REDIRECT_URI"]);
+    const { accessToken, user, impersonator } = refreshResult;
+    const { sid: sessionId, org_id: organizationId, role, roles, permissions, entitlements, feature_flags: featureFlags } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$decode_jwt$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decodeJwt"])(accessToken);
+    return {
+        sessionId,
+        user,
+        organizationId,
+        role,
+        roles,
+        permissions,
+        entitlements,
+        featureFlags,
+        impersonator,
+        accessToken
+    };
+}
+function getMiddlewareAuthPathRegex(pathGlob) {
+    try {
+        const url = new URL(pathGlob, 'https://example.com');
+        const path = `${url.pathname}${url.hash || ''}`;
+        const tokens = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$path$2d$to$2d$regexp$2f$dist$2e$es2015$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["parse"])(path);
+        const regex = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$path$2d$to$2d$regexp$2f$dist$2e$es2015$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["tokensToRegexp"])(tokens).source;
+        return new RegExp(regex);
+    } catch (err) {
+        console.log('err', err);
+        const message = err instanceof Error ? err.message : String(err);
+        throw new Error(`Error parsing routes for middleware auth. Reason: ${message}`);
+    }
+}
+async function redirectToSignIn() {
+    const headersList = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["headers"])();
+    const url = headersList.get('x-url');
+    if (!url) {
+        throw new Error('No URL found in the headers');
+    }
+    // Determine if the current route is in the sign up paths
+    const signUpPaths = headersList.get(signUpPathsHeaderName)?.split(',');
+    const pathname = new URL(url).pathname;
+    const screenHint = getScreenHint(signUpPaths, pathname);
+    const returnPathname = getReturnPathname(url);
+    const { url: authkitUrl, sealedState } = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$get$2d$authorization$2d$url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getAuthorizationUrl"])({
+        returnPathname,
+        screenHint
+    });
+    await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$pkce$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["setPKCECookie"])(sealedState);
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$components$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["redirect"])(authkitUrl);
+}
+async function getTokenClaims(accessToken) {
+    const token = accessToken ?? (await withAuth()).accessToken;
+    if (!token) {
+        return {};
+    }
+    return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$decode_jwt$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decodeJwt"])(token);
+}
+async function withAuth(options) {
+    const session = await getSessionFromHeader();
+    if (!session) {
+        if (options?.ensureSignedIn) {
+            await redirectToSignIn();
+        }
+        return {
+            user: null
+        };
+    }
+    const { sid: sessionId, org_id: organizationId, role, roles, permissions, entitlements, feature_flags: featureFlags } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$decode_jwt$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decodeJwt"])(session.accessToken);
+    return {
+        sessionId,
+        user: session.user,
+        organizationId,
+        role,
+        roles,
+        permissions,
+        entitlements,
+        featureFlags,
+        impersonator: session.impersonator,
+        accessToken: session.accessToken
+    };
+}
+async function verifyAccessToken(accessToken) {
+    try {
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$jwt$2f$verify$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jwtVerify"])(accessToken, JWKS());
+        return true;
+    } catch  {
+        return false;
+    }
+}
+async function getSessionFromCookie(request) {
+    const cookieName = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_COOKIE_NAME"] || 'wos-session';
+    let cookie;
+    if (request) {
+        cookie = request.cookies.get(cookieName);
+    } else {
+        const nextCookies = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["cookies"])();
+        cookie = nextCookies.get(cookieName);
+    }
+    if (cookie) {
+        return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$iron$2d$session$2f$dist$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["unsealData"])(cookie.value, {
+            password: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_COOKIE_PASSWORD"]
+        });
+    }
+}
+async function getSessionFromHeader() {
+    const headersList = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["headers"])();
+    const hasMiddleware = Boolean(headersList.get(middlewareHeaderName));
+    if (!hasMiddleware) {
+        const url = headersList.get('x-url');
+        throw new Error(`You are calling 'withAuth' on ${url ?? 'a route'} that isn't covered by the AuthKit middleware. Make sure it is running on all paths you are calling 'withAuth' from by updating your middleware config in 'middleware.(js|ts)'.`);
+    }
+    const authHeader = headersList.get(sessionHeaderName);
+    if (!authHeader) return;
+    return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$iron$2d$session$2f$dist$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["unsealData"])(authHeader, {
+        password: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_COOKIE_PASSWORD"]
+    });
+}
+function getReturnPathname(url) {
+    const newUrl = new URL(url);
+    return `${newUrl.pathname}${newUrl.search}`;
+}
+function getScreenHint(signUpPaths, pathname) {
+    if (!signUpPaths) return 'sign-in';
+    const screenHintPaths = signUpPaths.filter((pathGlob)=>{
+        const pathRegex = getMiddlewareAuthPathRegex(pathGlob);
+        return pathRegex.exec(pathname);
+    });
+    return screenHintPaths.length > 0 ? 'sign-up' : 'sign-in';
+}
+async function saveSession(sessionOrResponse, request) {
+    const cookieName = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_COOKIE_NAME"] || 'wos-session';
+    const encryptedSession = await encryptSession(sessionOrResponse);
+    const nextCookies = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["cookies"])();
+    const url = typeof request === 'string' ? request : request.url;
+    nextCookies.set(cookieName, encryptedSession, (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$cookie$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getCookieOptions"])(url));
+}
+;
+;
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ensureServerEntryExports"])([
+    encryptSession,
+    updateSessionMiddleware,
+    updateSession,
+    refreshSession,
+    getTokenClaims,
+    withAuth,
+    getSessionFromCookie,
+    saveSession
+]);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(encryptSession, "400af4facbb546493fefe4808c85f1eb3d1a87a263", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(updateSessionMiddleware, "7e65046db0118808a31cc7b5d1ee927564933a5fe5", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(updateSession, "608d86609ef8aade3fac0f3c1068675618d325ee8d", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(refreshSession, "40c1e4a4b89da547c3774e9e0412de7af5ee599b94", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getTokenClaims, "407c0e0dc26d6cbf827683cf6c853abe84ea319085", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(withAuth, "403b3b1112051e5ed5d1bf6cb84a58cfbb2c1daa5b", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getSessionFromCookie, "40f6e28c82e6c1995e3d503d03d61df3f79e07036b", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(saveSession, "60a78ac18381095a1462b901bc755518a1526e723a", null);
+}),
+"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/auth.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+/* __next_internal_action_entry_do_not_use__ [{"409b5f2639883ecabe7775ab91bc5b737770fa03b5":{"name":"getSignInUrl"},"40c495b660851319592a99e1d2450d355f0f87ed03":{"name":"signOut"},"40c6c8c29005d84f55b0296af9c768041eeec9f00b":{"name":"getSignUpUrl"},"608b34774b47eb16f18a466c19ea2e411b3b811369":{"name":"switchToOrganization"}},"node_modules/@workos-inc/authkit-nextjs/dist/esm/auth.js",""] */ __turbopack_context__.s([
+    "getSignInUrl",
+    ()=>getSignInUrl,
+    "getSignUpUrl",
+    ()=>getSignUpUrl,
+    "signOut",
+    ()=>signOut,
+    "switchToOrganization",
+    ()=>switchToOrganization
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/build/webpack/loaders/next-flight-loader/server-reference.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$decode_jwt$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/jose/dist/node/esm/util/decode_jwt.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/cache.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/headers.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$api$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/node_modules/next/dist/api/navigation.react-server.js [app-rsc] (ecmascript) <locals>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$components$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/client/components/navigation.react-server.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/env-variables.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$cookie$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/cookie.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$get$2d$authorization$2d$url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/get-authorization-url.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$pkce$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/pkce.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$workos$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/workos.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/build/webpack/loaders/next-flight-loader/action-validate.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+/**
+ * A wrapper around revalidateTag to provide compatibility with previous versions.
+ * @param tag The tag to revalidate.
+ */ function revalidateTagCompat(tag) {
+    const fn = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidateTag"];
+    return fn(tag, 'max');
+}
+async function getAuthURLAndSetPKCECookie(options) {
+    const { url, sealedState } = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$get$2d$authorization$2d$url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getAuthorizationUrl"])(options);
+    await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$pkce$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["setPKCECookie"])(sealedState);
+    return url;
+}
+async function getSignInUrl(authUrlOptions = {}) {
+    return getAuthURLAndSetPKCECookie({
+        ...authUrlOptions,
+        returnPathname: authUrlOptions.returnTo,
+        screenHint: 'sign-in'
+    });
+}
+async function getSignUpUrl(authUrlOptions = {}) {
+    return getAuthURLAndSetPKCECookie({
+        ...authUrlOptions,
+        returnPathname: authUrlOptions.returnTo,
+        screenHint: 'sign-up'
+    });
+}
+async function signOut({ returnTo } = {}) {
+    let sessionId;
+    try {
+        const { sessionId: sid } = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["withAuth"])();
+        sessionId = sid;
+    } catch (error) {
+        // Fall back to reading session directly from cookie when middleware isn't available
+        const session = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getSessionFromCookie"])();
+        if (session && session.accessToken) {
+            const { sid } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jose$2f$dist$2f$node$2f$esm$2f$util$2f$decode_jwt$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decodeJwt"])(session.accessToken);
+            sessionId = sid;
+        } else {
+            // can't recover - throw the original error.
+            throw error;
+        }
+    } finally{
+        const nextCookies = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["cookies"])();
+        const cookieName = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$env$2d$variables$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["WORKOS_COOKIE_NAME"] || 'wos-session';
+        const { domain, path, sameSite, secure } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$cookie$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getCookieOptions"])();
+        try {
+            nextCookies.delete({
+                name: cookieName,
+                domain,
+                path,
+                sameSite,
+                secure
+            });
+        } catch  {
+            // Some environments (e.g., vinext) only accept a string cookie name
+            nextCookies.delete(cookieName);
+        }
+        if (sessionId) {
+            (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$components$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["redirect"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$workos$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getWorkOS"])().userManagement.getLogoutUrl({
+                sessionId,
+                returnTo
+            }));
+        } else {
+            (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$components$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["redirect"])(returnTo ?? '/');
+        }
+    }
+}
+async function switchToOrganization(organizationId, options = {}) {
+    const { returnTo, revalidationStrategy = 'path', revalidationTags = [] } = options;
+    const headersList = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["headers"])();
+    let result;
+    // istanbul ignore next
+    const pathname = returnTo || headersList.get('x-url') || '/';
+    try {
+        result = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["refreshSession"])({
+            organizationId,
+            ensureSignedIn: true
+        });
+    } catch (// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    error) {
+        const { cause } = error;
+        /* istanbul ignore next */ if (cause?.rawData?.authkit_redirect_url) {
+            (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$components$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["redirect"])(cause.rawData.authkit_redirect_url);
+        } else {
+            if (cause?.error === 'sso_required' || cause?.error === 'mfa_enrollment') {
+                return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$components$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["redirect"])(await getAuthURLAndSetPKCECookie({
+                    organizationId
+                }));
+            }
+            throw error;
+        }
+    }
+    try {
+        switch(revalidationStrategy){
+            case 'path':
+                (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])(pathname);
+                break;
+            case 'tag':
+                for (const tag of revalidationTags){
+                    revalidateTagCompat(tag);
+                }
+                break;
+        }
+    } catch  {
+    // revalidatePath/revalidateTag may not be available in non-Next.js environments (e.g., vinext)
+    }
+    if (revalidationStrategy !== 'none') {
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$components$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["redirect"])(pathname);
+    }
+    return result;
+}
+;
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ensureServerEntryExports"])([
+    getSignInUrl,
+    getSignUpUrl,
+    signOut,
+    switchToOrganization
+]);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getSignInUrl, "409b5f2639883ecabe7775ab91bc5b737770fa03b5", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getSignUpUrl, "40c6c8c29005d84f55b0296af9c768041eeec9f00b", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(signOut, "40c495b660851319592a99e1d2450d355f0f87ed03", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(switchToOrganization, "608b34774b47eb16f18a466c19ea2e411b3b811369", null);
+}),
+"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/actions.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+/* __next_internal_action_entry_do_not_use__ [{"002d3fa2935c0ec090f276c240bc85484b3050f305":{"name":"refreshAccessTokenAction"},"00ec7dc72b0e2e7d8dd2e96177c518bbf8ddeeb8b7":{"name":"checkSessionAction"},"00ff450b6975708e594e92e27a493e143628bc2653":{"name":"getAccessTokenAction"},"40092673efa754bec46fd615c2d186e01249262fb9":{"name":"getAuthAction"},"4053a9cdef5e0f591bfd34a7850472095f81341114":{"name":"handleSignOutAction"},"40867b70b2416f186a93ddab7af11ca08b914d06ea":{"name":"getOrganizationAction"},"40b42c909e04ff5ea105d890e2afe2413acb3b553e":{"name":"refreshAuthAction"},"60273f1772ce8e59840330fd64cda7b9bd15fe8936":{"name":"switchToOrganizationAction"}},"node_modules/@workos-inc/authkit-nextjs/dist/esm/actions.js",""] */ __turbopack_context__.s([
+    "checkSessionAction",
+    ()=>checkSessionAction,
+    "getAccessTokenAction",
+    ()=>getAccessTokenAction,
+    "getAuthAction",
+    ()=>getAuthAction,
+    "getOrganizationAction",
+    ()=>getOrganizationAction,
+    "handleSignOutAction",
+    ()=>handleSignOutAction,
+    "refreshAccessTokenAction",
+    ()=>refreshAccessTokenAction,
+    "refreshAuthAction",
+    ()=>refreshAuthAction,
+    "switchToOrganizationAction",
+    ()=>switchToOrganizationAction
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/build/webpack/loaders/next-flight-loader/server-reference.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$auth$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/auth.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$get$2d$authorization$2d$url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/get-authorization-url.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$workos$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/workos.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/build/webpack/loaders/next-flight-loader/action-validate.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+;
+/**
+ * This function is used to sanitize the auth object.
+ * Remove the accessToken from the auth object as it is not needed on the client side.
+ * @param value - The auth object to sanitize
+ * @returns The sanitized auth object
+ */ function sanitize(value) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { accessToken, ...sanitized } = value;
+    return sanitized;
+}
+const checkSessionAction = async ()=>{
+    return true;
+};
+const handleSignOutAction = async ({ returnTo } = {})=>{
+    await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$auth$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["signOut"])({
+        returnTo
+    });
+};
+const getOrganizationAction = async (organizationId)=>{
+    return await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$workos$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getWorkOS"])().organizations.getOrganization(organizationId);
+};
+const getAuthAction = async (options)=>{
+    // Never pass ensureSignedIn to withAuth from a server action, because withAuth
+    // would call redirect() to an external URL, which causes CORS errors when
+    // invoked via a client-side fetch. Instead, return the sign-in URL so the
+    // client can redirect via window.location.href.
+    const auth = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["withAuth"])();
+    const sanitized = sanitize(auth);
+    if (options?.ensureSignedIn && !auth.user) {
+        const signInUrl = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$get$2d$authorization$2d$url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getAuthorizationUrl"])({
+            screenHint: 'sign-in'
+        });
+        return {
+            ...sanitized,
+            signInUrl
+        };
+    }
+    return sanitized;
+};
+const refreshAuthAction = async ({ ensureSignedIn, organizationId })=>{
+    // Never pass ensureSignedIn to refreshSession from a server action for the
+    // same CORS reason as getAuthAction above.
+    const auth = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["refreshSession"])({
+        organizationId
+    });
+    const sanitized = sanitize(auth);
+    if (ensureSignedIn && !auth.user) {
+        const signInUrl = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$get$2d$authorization$2d$url$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getAuthorizationUrl"])({
+            screenHint: 'sign-in'
+        });
+        return {
+            ...sanitized,
+            signInUrl
+        };
+    }
+    return sanitized;
+};
+const switchToOrganizationAction = async (organizationId, options)=>{
+    return sanitize(await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$auth$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["switchToOrganization"])(organizationId, options));
+};
+async function getAccessTokenAction() {
+    const auth = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["withAuth"])();
+    return auth.accessToken;
+}
+async function refreshAccessTokenAction() {
+    try {
+        const auth = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["refreshSession"])();
+        return {
+            accessToken: auth.accessToken
+        };
+    } catch (error) {
+        console.warn('Failed to refresh access token:', error instanceof Error ? error.message : String(error));
+        return {
+            accessToken: undefined,
+            error: 'Failed to refresh access token'
+        };
+    }
+}
+;
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ensureServerEntryExports"])([
+    checkSessionAction,
+    handleSignOutAction,
+    getOrganizationAction,
+    getAuthAction,
+    refreshAuthAction,
+    switchToOrganizationAction,
+    getAccessTokenAction,
+    refreshAccessTokenAction
+]);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(checkSessionAction, "00ec7dc72b0e2e7d8dd2e96177c518bbf8ddeeb8b7", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(handleSignOutAction, "4053a9cdef5e0f591bfd34a7850472095f81341114", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getOrganizationAction, "40867b70b2416f186a93ddab7af11ca08b914d06ea", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getAuthAction, "40092673efa754bec46fd615c2d186e01249262fb9", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(refreshAuthAction, "40b42c909e04ff5ea105d890e2afe2413acb3b553e", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(switchToOrganizationAction, "60273f1772ce8e59840330fd64cda7b9bd15fe8936", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getAccessTokenAction, "00ff450b6975708e594e92e27a493e143628bc2653", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(refreshAccessTokenAction, "002d3fa2935c0ec090f276c240bc85484b3050f305", null);
+}),
+"[project]/.next-internal/server/app/chat/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/auth.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript) <locals>", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$actions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/actions.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$auth$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/auth.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+}),
+"[project]/.next-internal/server/app/chat/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/auth.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "00ec7dc72b0e2e7d8dd2e96177c518bbf8ddeeb8b7",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$actions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["checkSessionAction"],
+    "40092673efa754bec46fd615c2d186e01249262fb9",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$actions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getAuthAction"],
+    "400af4facbb546493fefe4808c85f1eb3d1a87a263",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["encryptSession"],
+    "403b3b1112051e5ed5d1bf6cb84a58cfbb2c1daa5b",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["withAuth"],
+    "4053a9cdef5e0f591bfd34a7850472095f81341114",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$actions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["handleSignOutAction"],
+    "407c0e0dc26d6cbf827683cf6c853abe84ea319085",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getTokenClaims"],
+    "40b42c909e04ff5ea105d890e2afe2413acb3b553e",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$actions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["refreshAuthAction"],
+    "40c1e4a4b89da547c3774e9e0412de7af5ee599b94",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["refreshSession"],
+    "40c495b660851319592a99e1d2450d355f0f87ed03",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$auth$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["signOut"],
+    "40f6e28c82e6c1995e3d503d03d61df3f79e07036b",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getSessionFromCookie"],
+    "60273f1772ce8e59840330fd64cda7b9bd15fe8936",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$actions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["switchToOrganizationAction"],
+    "608d86609ef8aade3fac0f3c1068675618d325ee8d",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["updateSession"],
+    "60a78ac18381095a1462b901bc755518a1526e723a",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["saveSession"],
+    "7e65046db0118808a31cc7b5d1ee927564933a5fe5",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["updateSessionMiddleware"]
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$chat$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$actions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE2__$3d3e$__$225b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$auth$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i('[project]/.next-internal/server/app/chat/page/actions.js { ACTIONS_MODULE0 => "[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/actions.js [app-rsc] (ecmascript)", ACTIONS_MODULE1 => "[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js [app-rsc] (ecmascript)", ACTIONS_MODULE2 => "[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/auth.js [app-rsc] (ecmascript)" } [app-rsc] (server actions loader, ecmascript) <locals>');
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$actions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/actions.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$session$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/session.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$workos$2d$inc$2f$authkit$2d$nextjs$2f$dist$2f$esm$2f$auth$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@workos-inc/authkit-nextjs/dist/esm/auth.js [app-rsc] (ecmascript)");
+}),
+"[project]/node_modules/cookie/index.js [app-rsc] (ecmascript)", ((__turbopack_context__, module, exports) => {
+"use strict";
+
+/*!
+ * cookie
+ * Copyright(c) 2012-2014 Roman Shtylman
+ * Copyright(c) 2015 Douglas Christopher Wilson
+ * MIT Licensed
+ */ /**
+ * Module exports.
+ * @public
+ */ exports.parse = parse;
+exports.serialize = serialize;
+/**
+ * Module variables.
+ * @private
+ */ var __toString = Object.prototype.toString;
+var __hasOwnProperty = Object.prototype.hasOwnProperty;
+/**
+ * RegExp to match cookie-name in RFC 6265 sec 4.1.1
+ * This refers out to the obsoleted definition of token in RFC 2616 sec 2.2
+ * which has been replaced by the token definition in RFC 7230 appendix B.
+ *
+ * cookie-name       = token
+ * token             = 1*tchar
+ * tchar             = "!" / "#" / "$" / "%" / "&" / "'" /
+ *                     "*" / "+" / "-" / "." / "^" / "_" /
+ *                     "`" / "|" / "~" / DIGIT / ALPHA
+ */ var cookieNameRegExp = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
+/**
+ * RegExp to match cookie-value in RFC 6265 sec 4.1.1
+ *
+ * cookie-value      = *cookie-octet / ( DQUOTE *cookie-octet DQUOTE )
+ * cookie-octet      = %x21 / %x23-2B / %x2D-3A / %x3C-5B / %x5D-7E
+ *                     ; US-ASCII characters excluding CTLs,
+ *                     ; whitespace DQUOTE, comma, semicolon,
+ *                     ; and backslash
+ */ var cookieValueRegExp = /^("?)[\u0021\u0023-\u002B\u002D-\u003A\u003C-\u005B\u005D-\u007E]*\1$/;
+/**
+ * RegExp to match domain-value in RFC 6265 sec 4.1.1
+ *
+ * domain-value      = <subdomain>
+ *                     ; defined in [RFC1034], Section 3.5, as
+ *                     ; enhanced by [RFC1123], Section 2.1
+ * <subdomain>       = <label> | <subdomain> "." <label>
+ * <label>           = <let-dig> [ [ <ldh-str> ] <let-dig> ]
+ *                     Labels must be 63 characters or less.
+ *                     'let-dig' not 'letter' in the first char, per RFC1123
+ * <ldh-str>         = <let-dig-hyp> | <let-dig-hyp> <ldh-str>
+ * <let-dig-hyp>     = <let-dig> | "-"
+ * <let-dig>         = <letter> | <digit>
+ * <letter>          = any one of the 52 alphabetic characters A through Z in
+ *                     upper case and a through z in lower case
+ * <digit>           = any one of the ten digits 0 through 9
+ *
+ * Keep support for leading dot: https://github.com/jshttp/cookie/issues/173
+ *
+ * > (Note that a leading %x2E ("."), if present, is ignored even though that
+ * character is not permitted, but a trailing %x2E ("."), if present, will
+ * cause the user agent to ignore the attribute.)
+ */ var domainValueRegExp = /^([.]?[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)([.][a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$/i;
+/**
+ * RegExp to match path-value in RFC 6265 sec 4.1.1
+ *
+ * path-value        = <any CHAR except CTLs or ";">
+ * CHAR              = %x01-7F
+ *                     ; defined in RFC 5234 appendix B.1
+ */ var pathValueRegExp = /^[\u0020-\u003A\u003D-\u007E]*$/;
+/**
+ * Parse a cookie header.
+ *
+ * Parse the given cookie header string into an object
+ * The object has the various cookies as keys(names) => values
+ *
+ * @param {string} str
+ * @param {object} [opt]
+ * @return {object}
+ * @public
+ */ function parse(str, opt) {
+    if (typeof str !== 'string') {
+        throw new TypeError('argument str must be a string');
+    }
+    var obj = {};
+    var len = str.length;
+    // RFC 6265 sec 4.1.1, RFC 2616 2.2 defines a cookie name consists of one char minimum, plus '='.
+    if (len < 2) return obj;
+    var dec = opt && opt.decode || decode;
+    var index = 0;
+    var eqIdx = 0;
+    var endIdx = 0;
+    do {
+        eqIdx = str.indexOf('=', index);
+        if (eqIdx === -1) break; // No more cookie pairs.
+        endIdx = str.indexOf(';', index);
+        if (endIdx === -1) {
+            endIdx = len;
+        } else if (eqIdx > endIdx) {
+            // backtrack on prior semicolon
+            index = str.lastIndexOf(';', eqIdx - 1) + 1;
+            continue;
+        }
+        var keyStartIdx = startIndex(str, index, eqIdx);
+        var keyEndIdx = endIndex(str, eqIdx, keyStartIdx);
+        var key = str.slice(keyStartIdx, keyEndIdx);
+        // only assign once
+        if (!__hasOwnProperty.call(obj, key)) {
+            var valStartIdx = startIndex(str, eqIdx + 1, endIdx);
+            var valEndIdx = endIndex(str, endIdx, valStartIdx);
+            if (str.charCodeAt(valStartIdx) === 0x22 /* " */  && str.charCodeAt(valEndIdx - 1) === 0x22 /* " */ ) {
+                valStartIdx++;
+                valEndIdx--;
+            }
+            var val = str.slice(valStartIdx, valEndIdx);
+            obj[key] = tryDecode(val, dec);
+        }
+        index = endIdx + 1;
+    }while (index < len)
+    return obj;
+}
+function startIndex(str, index, max) {
+    do {
+        var code = str.charCodeAt(index);
+        if (code !== 0x20 /*   */  && code !== 0x09 /* \t */ ) return index;
+    }while (++index < max)
+    return max;
+}
+function endIndex(str, index, min) {
+    while(index > min){
+        var code = str.charCodeAt(--index);
+        if (code !== 0x20 /*   */  && code !== 0x09 /* \t */ ) return index + 1;
+    }
+    return min;
+}
+/**
+ * Serialize data into a cookie header.
+ *
+ * Serialize a name value pair into a cookie string suitable for
+ * http headers. An optional options object specifies cookie parameters.
+ *
+ * serialize('foo', 'bar', { httpOnly: true })
+ *   => "foo=bar; httpOnly"
+ *
+ * @param {string} name
+ * @param {string} val
+ * @param {object} [opt]
+ * @return {string}
+ * @public
+ */ function serialize(name, val, opt) {
+    var enc = opt && opt.encode || encodeURIComponent;
+    if (typeof enc !== 'function') {
+        throw new TypeError('option encode is invalid');
+    }
+    if (!cookieNameRegExp.test(name)) {
+        throw new TypeError('argument name is invalid');
+    }
+    var value = enc(val);
+    if (!cookieValueRegExp.test(value)) {
+        throw new TypeError('argument val is invalid');
+    }
+    var str = name + '=' + value;
+    if (!opt) return str;
+    if (null != opt.maxAge) {
+        var maxAge = Math.floor(opt.maxAge);
+        if (!isFinite(maxAge)) {
+            throw new TypeError('option maxAge is invalid');
+        }
+        str += '; Max-Age=' + maxAge;
+    }
+    if (opt.domain) {
+        if (!domainValueRegExp.test(opt.domain)) {
+            throw new TypeError('option domain is invalid');
+        }
+        str += '; Domain=' + opt.domain;
+    }
+    if (opt.path) {
+        if (!pathValueRegExp.test(opt.path)) {
+            throw new TypeError('option path is invalid');
+        }
+        str += '; Path=' + opt.path;
+    }
+    if (opt.expires) {
+        var expires = opt.expires;
+        if (!isDate(expires) || isNaN(expires.valueOf())) {
+            throw new TypeError('option expires is invalid');
+        }
+        str += '; Expires=' + expires.toUTCString();
+    }
+    if (opt.httpOnly) {
+        str += '; HttpOnly';
+    }
+    if (opt.secure) {
+        str += '; Secure';
+    }
+    if (opt.partitioned) {
+        str += '; Partitioned';
+    }
+    if (opt.priority) {
+        var priority = typeof opt.priority === 'string' ? opt.priority.toLowerCase() : opt.priority;
+        switch(priority){
+            case 'low':
+                str += '; Priority=Low';
+                break;
+            case 'medium':
+                str += '; Priority=Medium';
+                break;
+            case 'high':
+                str += '; Priority=High';
+                break;
+            default:
+                throw new TypeError('option priority is invalid');
+        }
+    }
+    if (opt.sameSite) {
+        var sameSite = typeof opt.sameSite === 'string' ? opt.sameSite.toLowerCase() : opt.sameSite;
+        switch(sameSite){
+            case true:
+                str += '; SameSite=Strict';
+                break;
+            case 'lax':
+                str += '; SameSite=Lax';
+                break;
+            case 'strict':
+                str += '; SameSite=Strict';
+                break;
+            case 'none':
+                str += '; SameSite=None';
+                break;
+            default:
+                throw new TypeError('option sameSite is invalid');
+        }
+    }
+    return str;
+}
+/**
+ * URL-decode string value. Optimized to skip native call when no %.
+ *
+ * @param {string} str
+ * @returns {string}
+ */ function decode(str) {
+    return str.indexOf('%') !== -1 ? decodeURIComponent(str) : str;
+}
+/**
+ * Determine if value is a Date.
+ *
+ * @param {*} val
+ * @private
+ */ function isDate(val) {
+    return __toString.call(val) === '[object Date]';
+}
+/**
+ * Try decoding a string using a decoding function.
+ *
+ * @param {string} str
+ * @param {function} decode
+ * @private
+ */ function tryDecode(str, decode) {
+    try {
+        return decode(str);
+    } catch (e) {
+        return str;
+    }
+}
+}),
+"[project]/node_modules/iron-webcrypto/dist/index.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "algorithms",
+    ()=>algorithms,
+    "base64urlDecode",
+    ()=>base64urlDecode,
+    "base64urlEncode",
+    ()=>base64urlEncode,
+    "bufferToString",
+    ()=>bufferToString,
+    "clone",
+    ()=>clone,
+    "decrypt",
+    ()=>decrypt,
+    "defaults",
+    ()=>defaults,
+    "encrypt",
+    ()=>encrypt,
+    "generateKey",
+    ()=>generateKey,
+    "hmacWithPassword",
+    ()=>hmacWithPassword,
+    "macFormatVersion",
+    ()=>macFormatVersion,
+    "macPrefix",
+    ()=>macPrefix,
+    "randomBits",
+    ()=>randomBits,
+    "seal",
+    ()=>seal,
+    "stringToBuffer",
+    ()=>stringToBuffer,
+    "unseal",
+    ()=>unseal
+]);
+// src/utils.ts
+var alphabetByEncoding = {};
+var alphabetByValue = Array.from({
+    length: 64
+});
+for(let i = 0, start = "A".charCodeAt(0), limit = "Z".charCodeAt(0); i + start <= limit; i++){
+    const char = String.fromCharCode(i + start);
+    alphabetByEncoding[char] = i;
+    alphabetByValue[i] = char;
+}
+for(let i = 0, start = "a".charCodeAt(0), limit = "z".charCodeAt(0); i + start <= limit; i++){
+    const char = String.fromCharCode(i + start);
+    const index = i + 26;
+    alphabetByEncoding[char] = index;
+    alphabetByValue[index] = char;
+}
+for(let i = 0; i < 10; i++){
+    alphabetByEncoding[i.toString(10)] = i + 52;
+    const char = i.toString(10);
+    const index = i + 52;
+    alphabetByEncoding[char] = index;
+    alphabetByValue[index] = char;
+}
+alphabetByEncoding["-"] = 62;
+alphabetByValue[62] = "-";
+alphabetByEncoding["_"] = 63;
+alphabetByValue[63] = "_";
+var bitsPerLetter = 6;
+var bitsPerByte = 8;
+var maxLetterValue = 63;
+var stringToBuffer = (value)=>{
+    return new TextEncoder().encode(value);
+};
+var bufferToString = (value)=>{
+    return new TextDecoder().decode(value);
+};
+var base64urlDecode = (_input)=>{
+    const input = _input + "=".repeat((4 - _input.length % 4) % 4);
+    let totalByteLength = input.length / 4 * 3;
+    if (input.endsWith("==")) {
+        totalByteLength -= 2;
+    } else if (input.endsWith("=")) {
+        totalByteLength--;
+    }
+    const out = new ArrayBuffer(totalByteLength);
+    const dataView = new DataView(out);
+    for(let i = 0; i < input.length; i += 4){
+        let bits = 0;
+        let bitLength = 0;
+        for(let j = i, limit = i + 3; j <= limit; j++){
+            if (input[j] === "=") {
+                bits >>= bitsPerLetter;
+            } else {
+                if (!(input[j] in alphabetByEncoding)) {
+                    throw new TypeError(`Invalid character ${input[j]} in base64 string.`);
+                }
+                bits |= alphabetByEncoding[input[j]] << (limit - j) * bitsPerLetter;
+                bitLength += bitsPerLetter;
+            }
+        }
+        const chunkOffset = i / 4 * 3;
+        bits >>= bitLength % bitsPerByte;
+        const byteLength = Math.floor(bitLength / bitsPerByte);
+        for(let k = 0; k < byteLength; k++){
+            const offset = (byteLength - k - 1) * bitsPerByte;
+            dataView.setUint8(chunkOffset + k, (bits & 255 << offset) >> offset);
+        }
+    }
+    return new Uint8Array(out);
+};
+var base64urlEncode = (_input)=>{
+    const input = typeof _input === "string" ? stringToBuffer(_input) : _input;
+    let str = "";
+    for(let i = 0; i < input.length; i += 3){
+        let bits = 0;
+        let bitLength = 0;
+        for(let j = i, limit = Math.min(i + 3, input.length); j < limit; j++){
+            bits |= input[j] << (limit - j - 1) * bitsPerByte;
+            bitLength += bitsPerByte;
+        }
+        const bitClusterCount = Math.ceil(bitLength / bitsPerLetter);
+        bits <<= bitClusterCount * bitsPerLetter - bitLength;
+        for(let k = 1; k <= bitClusterCount; k++){
+            const offset = (bitClusterCount - k) * bitsPerLetter;
+            str += alphabetByValue[(bits & maxLetterValue << offset) >> offset];
+        }
+    }
+    return str;
+};
+// src/index.ts
+var defaults = {
+    encryption: {
+        saltBits: 256,
+        algorithm: "aes-256-cbc",
+        iterations: 1,
+        minPasswordlength: 32
+    },
+    integrity: {
+        saltBits: 256,
+        algorithm: "sha256",
+        iterations: 1,
+        minPasswordlength: 32
+    },
+    ttl: 0,
+    timestampSkewSec: 60,
+    localtimeOffsetMsec: 0
+};
+var clone = (options)=>({
+        ...options,
+        encryption: {
+            ...options.encryption
+        },
+        integrity: {
+            ...options.integrity
+        }
+    });
+var algorithms = {
+    "aes-128-ctr": {
+        keyBits: 128,
+        ivBits: 128,
+        name: "AES-CTR"
+    },
+    "aes-256-cbc": {
+        keyBits: 256,
+        ivBits: 128,
+        name: "AES-CBC"
+    },
+    sha256: {
+        keyBits: 256,
+        name: "SHA-256"
+    }
+};
+var macFormatVersion = "2";
+var macPrefix = "Fe26.2";
+var randomBytes = (_crypto, size)=>{
+    const bytes = new Uint8Array(size);
+    _crypto.getRandomValues(bytes);
+    return bytes;
+};
+var randomBits = (_crypto, bits)=>{
+    if (bits < 1) throw new Error("Invalid random bits count");
+    const bytes = Math.ceil(bits / 8);
+    return randomBytes(_crypto, bytes);
+};
+var pbkdf2 = async (_crypto, password, salt, iterations, keyLength, hash)=>{
+    const passwordBuffer = stringToBuffer(password);
+    const importedKey = await _crypto.subtle.importKey("raw", passwordBuffer, {
+        name: "PBKDF2"
+    }, false, [
+        "deriveBits"
+    ]);
+    const saltBuffer = stringToBuffer(salt);
+    const params = {
+        name: "PBKDF2",
+        hash,
+        salt: saltBuffer,
+        iterations
+    };
+    const derivation = await _crypto.subtle.deriveBits(params, importedKey, keyLength * 8);
+    return derivation;
+};
+var generateKey = async (_crypto, password, options)=>{
+    var _a;
+    if (!(password == null ? void 0 : password.length)) throw new Error("Empty password");
+    if (options == null || typeof options !== "object") throw new Error("Bad options");
+    if (!(options.algorithm in algorithms)) throw new Error(`Unknown algorithm: ${options.algorithm}`);
+    const algorithm = algorithms[options.algorithm];
+    const result = {};
+    const hmac = (_a = options.hmac) != null ? _a : false;
+    const id = hmac ? {
+        name: "HMAC",
+        hash: algorithm.name
+    } : {
+        name: algorithm.name
+    };
+    const usage = hmac ? [
+        "sign",
+        "verify"
+    ] : [
+        "encrypt",
+        "decrypt"
+    ];
+    if (typeof password === "string") {
+        if (password.length < options.minPasswordlength) throw new Error(`Password string too short (min ${options.minPasswordlength} characters required)`);
+        let { salt = "" } = options;
+        if (!salt) {
+            const { saltBits = 0 } = options;
+            if (!saltBits) throw new Error("Missing salt and saltBits options");
+            const randomSalt = randomBits(_crypto, saltBits);
+            salt = [
+                ...new Uint8Array(randomSalt)
+            ].map((x)=>x.toString(16).padStart(2, "0")).join("");
+        }
+        const derivedKey = await pbkdf2(_crypto, password, salt, options.iterations, algorithm.keyBits / 8, "SHA-1");
+        const importedEncryptionKey = await _crypto.subtle.importKey("raw", derivedKey, id, false, usage);
+        result.key = importedEncryptionKey;
+        result.salt = salt;
+    } else {
+        if (password.length < algorithm.keyBits / 8) throw new Error("Key buffer (password) too small");
+        result.key = await _crypto.subtle.importKey("raw", password, id, false, usage);
+        result.salt = "";
+    }
+    if (options.iv) result.iv = options.iv;
+    else if ("ivBits" in algorithm) result.iv = randomBits(_crypto, algorithm.ivBits);
+    return result;
+};
+var getEncryptParams = (algorithm, key, data)=>{
+    return [
+        algorithm === "aes-128-ctr" ? {
+            name: "AES-CTR",
+            counter: key.iv,
+            length: 128
+        } : {
+            name: "AES-CBC",
+            iv: key.iv
+        },
+        key.key,
+        typeof data === "string" ? stringToBuffer(data) : data
+    ];
+};
+var encrypt = async (_crypto, password, options, data)=>{
+    const key = await generateKey(_crypto, password, options);
+    const encrypted = await _crypto.subtle.encrypt(...getEncryptParams(options.algorithm, key, data));
+    return {
+        encrypted: new Uint8Array(encrypted),
+        key
+    };
+};
+var decrypt = async (_crypto, password, options, data)=>{
+    const key = await generateKey(_crypto, password, options);
+    const decrypted = await _crypto.subtle.decrypt(...getEncryptParams(options.algorithm, key, data));
+    return bufferToString(new Uint8Array(decrypted));
+};
+var hmacWithPassword = async (_crypto, password, options, data)=>{
+    const key = await generateKey(_crypto, password, {
+        ...options,
+        hmac: true
+    });
+    const textBuffer = stringToBuffer(data);
+    const signed = await _crypto.subtle.sign({
+        name: "HMAC"
+    }, key.key, textBuffer);
+    const digest = base64urlEncode(new Uint8Array(signed));
+    return {
+        digest,
+        salt: key.salt
+    };
+};
+var normalizePassword = (password)=>{
+    if (typeof password === "string" || password instanceof Uint8Array) return {
+        encryption: password,
+        integrity: password
+    };
+    if ("secret" in password) return {
+        id: password.id,
+        encryption: password.secret,
+        integrity: password.secret
+    };
+    return {
+        id: password.id,
+        encryption: password.encryption,
+        integrity: password.integrity
+    };
+};
+var seal = async (_crypto, object, password, options)=>{
+    if (!password) throw new Error("Empty password");
+    const opts = clone(options);
+    const now = Date.now() + (opts.localtimeOffsetMsec || 0);
+    const objectString = JSON.stringify(object);
+    const pass = normalizePassword(password);
+    const { id = "", encryption, integrity } = pass;
+    if (id && !/^\w+$/.test(id)) throw new Error("Invalid password id");
+    const { encrypted, key } = await encrypt(_crypto, encryption, opts.encryption, objectString);
+    const encryptedB64 = base64urlEncode(new Uint8Array(encrypted));
+    const iv = base64urlEncode(key.iv);
+    const expiration = opts.ttl ? now + opts.ttl : "";
+    const macBaseString = `${macPrefix}*${id}*${key.salt}*${iv}*${encryptedB64}*${expiration}`;
+    const mac = await hmacWithPassword(_crypto, integrity, opts.integrity, macBaseString);
+    const sealed = `${macBaseString}*${mac.salt}*${mac.digest}`;
+    return sealed;
+};
+var fixedTimeComparison = (a, b)=>{
+    let mismatch = a.length === b.length ? 0 : 1;
+    if (mismatch) b = a;
+    for(let i = 0; i < a.length; i += 1)mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    return mismatch === 0;
+};
+var unseal = async (_crypto, sealed, password, options)=>{
+    if (!password) throw new Error("Empty password");
+    const opts = clone(options);
+    const now = Date.now() + (opts.localtimeOffsetMsec || 0);
+    const parts = sealed.split("*");
+    if (parts.length !== 8) throw new Error("Incorrect number of sealed components");
+    const prefix = parts[0];
+    let passwordId = parts[1];
+    const encryptionSalt = parts[2];
+    const encryptionIv = parts[3];
+    const encryptedB64 = parts[4];
+    const expiration = parts[5];
+    const hmacSalt = parts[6];
+    const hmac = parts[7];
+    const macBaseString = `${prefix}*${passwordId}*${encryptionSalt}*${encryptionIv}*${encryptedB64}*${expiration}`;
+    if (macPrefix !== prefix) throw new Error("Wrong mac prefix");
+    if (expiration) {
+        if (!/^\d+$/.test(expiration)) throw new Error("Invalid expiration");
+        const exp = Number.parseInt(expiration, 10);
+        if (exp <= now - opts.timestampSkewSec * 1e3) throw new Error("Expired seal");
+    }
+    let pass = "";
+    passwordId = passwordId || "default";
+    if (typeof password === "string" || password instanceof Uint8Array) pass = password;
+    else if (passwordId in password) {
+        pass = password[passwordId];
+    } else {
+        throw new Error(`Cannot find password: ${passwordId}`);
+    }
+    pass = normalizePassword(pass);
+    const macOptions = opts.integrity;
+    macOptions.salt = hmacSalt;
+    const mac = await hmacWithPassword(_crypto, pass.integrity, macOptions, macBaseString);
+    if (!fixedTimeComparison(mac.digest, hmac)) throw new Error("Bad hmac value");
+    const encrypted = base64urlDecode(encryptedB64);
+    const decryptOptions = opts.encryption;
+    decryptOptions.salt = encryptionSalt;
+    decryptOptions.iv = base64urlDecode(encryptionIv);
+    const decrypted = await decrypt(_crypto, pass.encryption, decryptOptions, encrypted);
+    if (decrypted) return JSON.parse(decrypted);
+    return null;
+};
+;
+}),
+"[project]/node_modules/uncrypto/dist/crypto.node.mjs [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>_crypto,
+    "getRandomValues",
+    ()=>getRandomValues,
+    "randomUUID",
+    ()=>randomUUID,
+    "subtle",
+    ()=>subtle
+]);
+var __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/node:crypto [external] (node:crypto, cjs)");
+;
+const subtle = __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["default"].webcrypto?.subtle || {};
+const randomUUID = ()=>{
+    return __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["default"].randomUUID();
+};
+const getRandomValues = (array)=>{
+    return __TURBOPACK__imported__module__$5b$externals$5d2f$node$3a$crypto__$5b$external$5d$__$28$node$3a$crypto$2c$__cjs$29$__["default"].webcrypto.getRandomValues(array);
+};
+const _crypto = {
+    randomUUID,
+    getRandomValues,
+    subtle
+};
+;
+}),
+"[project]/node_modules/iron-session/dist/index.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "getIronSession",
+    ()=>getIronSession,
+    "sealData",
+    ()=>sealData,
+    "unsealData",
+    ()=>unsealData
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$cookie$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/cookie/index.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$iron$2d$webcrypto$2f$dist$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/iron-webcrypto/dist/index.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$uncrypto$2f$dist$2f$crypto$2e$node$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/uncrypto/dist/crypto.node.mjs [app-rsc] (ecmascript)");
+;
+;
+;
+// src/core.ts
+var timestampSkewSec = 60;
+var fourteenDaysInSeconds = 14 * 24 * 3600;
+var currentMajorVersion = 2;
+var versionDelimiter = "~";
+var defaultOptions = {
+    ttl: fourteenDaysInSeconds,
+    cookieOptions: {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        path: "/"
+    }
+};
+function normalizeStringPasswordToMap(password) {
+    return typeof password === "string" ? {
+        1: password
+    } : password;
+}
+function parseSeal(seal) {
+    const [sealWithoutVersion, tokenVersionAsString] = seal.split(versionDelimiter);
+    const tokenVersion = tokenVersionAsString == null ? null : parseInt(tokenVersionAsString, 10);
+    return {
+        sealWithoutVersion,
+        tokenVersion
+    };
+}
+function computeCookieMaxAge(ttl) {
+    if (ttl === 0) {
+        return 2147483647;
+    }
+    return ttl - timestampSkewSec;
+}
+function getCookie(req, cookieName) {
+    return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$cookie$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["parse"])(("headers" in req && typeof req.headers.get === "function" ? req.headers.get("cookie") : req.headers.cookie) ?? "")[cookieName] ?? "";
+}
+function getServerActionCookie(cookieName, cookieHandler) {
+    const cookieObject = cookieHandler.get(cookieName);
+    const cookie = cookieObject?.value;
+    if (typeof cookie === "string") {
+        return cookie;
+    }
+    return "";
+}
+function setCookie(res, cookieValue) {
+    if ("headers" in res && typeof res.headers.append === "function") {
+        res.headers.append("set-cookie", cookieValue);
+        return;
+    }
+    let existingSetCookie = res.getHeader("set-cookie") ?? [];
+    if (!Array.isArray(existingSetCookie)) {
+        existingSetCookie = [
+            existingSetCookie.toString()
+        ];
+    }
+    res.setHeader("set-cookie", [
+        ...existingSetCookie,
+        cookieValue
+    ]);
+}
+function createSealData(_crypto) {
+    return async function sealData2(data, { password, ttl = fourteenDaysInSeconds }) {
+        const passwordsMap = normalizeStringPasswordToMap(password);
+        const mostRecentPasswordId = Math.max(...Object.keys(passwordsMap).map(Number));
+        const passwordForSeal = {
+            id: mostRecentPasswordId.toString(),
+            secret: passwordsMap[mostRecentPasswordId]
+        };
+        const seal$1 = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$iron$2d$webcrypto$2f$dist$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["seal"])(_crypto, data, passwordForSeal, {
+            ...__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$iron$2d$webcrypto$2f$dist$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["defaults"],
+            ttl: ttl * 1e3
+        });
+        return `${seal$1}${versionDelimiter}${currentMajorVersion}`;
+    };
+}
+function createUnsealData(_crypto) {
+    return async function unsealData2(seal, { password, ttl = fourteenDaysInSeconds }) {
+        const passwordsMap = normalizeStringPasswordToMap(password);
+        const { sealWithoutVersion, tokenVersion } = parseSeal(seal);
+        try {
+            const data = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$iron$2d$webcrypto$2f$dist$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["unseal"])(_crypto, sealWithoutVersion, passwordsMap, {
+                ...__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$iron$2d$webcrypto$2f$dist$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["defaults"],
+                ttl: ttl * 1e3
+            }) ?? {};
+            if (tokenVersion === 2) {
+                return data;
+            }
+            return {
+                ...data.persistent
+            };
+        } catch (error) {
+            if (error instanceof Error && /^(Expired seal|Bad hmac value|Cannot find password|Incorrect number of sealed components)/.test(error.message)) {
+                return {};
+            }
+            throw error;
+        }
+    };
+}
+function getSessionConfig(sessionOptions) {
+    const options = {
+        ...defaultOptions,
+        ...sessionOptions,
+        cookieOptions: {
+            ...defaultOptions.cookieOptions,
+            ...sessionOptions.cookieOptions || {}
+        }
+    };
+    if (sessionOptions.cookieOptions && "maxAge" in sessionOptions.cookieOptions) {
+        if (sessionOptions.cookieOptions.maxAge === void 0) {
+            options.ttl = 0;
+        }
+    } else {
+        options.cookieOptions.maxAge = computeCookieMaxAge(options.ttl);
+    }
+    return options;
+}
+var badUsageMessage = "iron-session: Bad usage: use getIronSession(req, res, options) or getIronSession(cookieStore, options).";
+function createGetIronSession(sealData2, unsealData2) {
+    return getIronSession2;
+    //TURBOPACK unreachable
+    ;
+    async function getIronSession2(reqOrCookieStore, resOrsessionOptions, sessionOptions) {
+        if (!reqOrCookieStore) {
+            throw new Error(badUsageMessage);
+        }
+        if (!resOrsessionOptions) {
+            throw new Error(badUsageMessage);
+        }
+        if (!sessionOptions) {
+            return getIronSessionFromCookieStore(reqOrCookieStore, resOrsessionOptions, sealData2, unsealData2);
+        }
+        const req = reqOrCookieStore;
+        const res = resOrsessionOptions;
+        if (!sessionOptions) {
+            throw new Error(badUsageMessage);
+        }
+        if (!sessionOptions.cookieName) {
+            throw new Error("iron-session: Bad usage. Missing cookie name.");
+        }
+        if (!sessionOptions.password) {
+            throw new Error("iron-session: Bad usage. Missing password.");
+        }
+        const passwordsMap = normalizeStringPasswordToMap(sessionOptions.password);
+        if (Object.values(passwordsMap).some((password)=>password.length < 32)) {
+            throw new Error("iron-session: Bad usage. Password must be at least 32 characters long.");
+        }
+        let sessionConfig = getSessionConfig(sessionOptions);
+        const sealFromCookies = getCookie(req, sessionConfig.cookieName);
+        const session = sealFromCookies ? await unsealData2(sealFromCookies, {
+            password: passwordsMap,
+            ttl: sessionConfig.ttl
+        }) : {};
+        Object.defineProperties(session, {
+            updateConfig: {
+                value: function updateConfig(newSessionOptions) {
+                    sessionConfig = getSessionConfig(newSessionOptions);
+                }
+            },
+            save: {
+                value: async function save() {
+                    if ("headersSent" in res && res.headersSent) {
+                        throw new Error("iron-session: Cannot set session cookie: session.save() was called after headers were sent. Make sure to call it before any res.send() or res.end()");
+                    }
+                    const seal = await sealData2(session, {
+                        password: passwordsMap,
+                        ttl: sessionConfig.ttl
+                    });
+                    const cookieValue = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$cookie$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["serialize"])(sessionConfig.cookieName, seal, sessionConfig.cookieOptions);
+                    if (cookieValue.length > 4096) {
+                        throw new Error(`iron-session: Cookie length is too big (${cookieValue.length} bytes), browsers will refuse it. Try to remove some data.`);
+                    }
+                    setCookie(res, cookieValue);
+                }
+            },
+            destroy: {
+                value: function destroy() {
+                    Object.keys(session).forEach((key)=>{
+                        delete session[key];
+                    });
+                    const cookieValue = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$cookie$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["serialize"])(sessionConfig.cookieName, "", {
+                        ...sessionConfig.cookieOptions,
+                        maxAge: 0
+                    });
+                    setCookie(res, cookieValue);
+                }
+            }
+        });
+        return session;
+    }
+}
+async function getIronSessionFromCookieStore(cookieStore, sessionOptions, sealData2, unsealData2) {
+    if (!sessionOptions.cookieName) {
+        throw new Error("iron-session: Bad usage. Missing cookie name.");
+    }
+    if (!sessionOptions.password) {
+        throw new Error("iron-session: Bad usage. Missing password.");
+    }
+    const passwordsMap = normalizeStringPasswordToMap(sessionOptions.password);
+    if (Object.values(passwordsMap).some((password)=>password.length < 32)) {
+        throw new Error("iron-session: Bad usage. Password must be at least 32 characters long.");
+    }
+    let sessionConfig = getSessionConfig(sessionOptions);
+    const sealFromCookies = getServerActionCookie(sessionConfig.cookieName, cookieStore);
+    const session = sealFromCookies ? await unsealData2(sealFromCookies, {
+        password: passwordsMap,
+        ttl: sessionConfig.ttl
+    }) : {};
+    Object.defineProperties(session, {
+        updateConfig: {
+            value: function updateConfig(newSessionOptions) {
+                sessionConfig = getSessionConfig(newSessionOptions);
+            }
+        },
+        save: {
+            value: async function save() {
+                const seal = await sealData2(session, {
+                    password: passwordsMap,
+                    ttl: sessionConfig.ttl
+                });
+                const cookieLength = sessionConfig.cookieName.length + seal.length + JSON.stringify(sessionConfig.cookieOptions).length;
+                if (cookieLength > 4096) {
+                    throw new Error(`iron-session: Cookie length is too big (${cookieLength} bytes), browsers will refuse it. Try to remove some data.`);
+                }
+                cookieStore.set(sessionConfig.cookieName, seal, sessionConfig.cookieOptions);
+            }
+        },
+        destroy: {
+            value: function destroy() {
+                Object.keys(session).forEach((key)=>{
+                    delete session[key];
+                });
+                const cookieOptions = {
+                    ...sessionConfig.cookieOptions,
+                    maxAge: 0
+                };
+                cookieStore.set(sessionConfig.cookieName, "", cookieOptions);
+            }
+        }
+    });
+    return session;
+}
+var sealData = createSealData(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$uncrypto$2f$dist$2f$crypto$2e$node$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__);
+var unsealData = createUnsealData(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$uncrypto$2f$dist$2f$crypto$2e$node$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__);
+var getIronSession = createGetIronSession(sealData, unsealData);
+;
+}),
+"[project]/node_modules/path-to-regexp/dist.es2015/index.js [app-rsc] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "compile",
+    ()=>compile,
+    "match",
+    ()=>match,
+    "parse",
+    ()=>parse,
+    "pathToRegexp",
+    ()=>pathToRegexp,
+    "regexpToFunction",
+    ()=>regexpToFunction,
+    "tokensToFunction",
+    ()=>tokensToFunction,
+    "tokensToRegexp",
+    ()=>tokensToRegexp
+]);
+/**
+ * Tokenize input string.
+ */ function lexer(str) {
+    var tokens = [];
+    var i = 0;
+    while(i < str.length){
+        var char = str[i];
+        if (char === "*" || char === "+" || char === "?") {
+            tokens.push({
+                type: "MODIFIER",
+                index: i,
+                value: str[i++]
+            });
+            continue;
+        }
+        if (char === "\\") {
+            tokens.push({
+                type: "ESCAPED_CHAR",
+                index: i++,
+                value: str[i++]
+            });
+            continue;
+        }
+        if (char === "{") {
+            tokens.push({
+                type: "OPEN",
+                index: i,
+                value: str[i++]
+            });
+            continue;
+        }
+        if (char === "}") {
+            tokens.push({
+                type: "CLOSE",
+                index: i,
+                value: str[i++]
+            });
+            continue;
+        }
+        if (char === ":") {
+            var name = "";
+            var j = i + 1;
+            while(j < str.length){
+                var code = str.charCodeAt(j);
+                if (// `0-9`
+                code >= 48 && code <= 57 || code >= 65 && code <= 90 || code >= 97 && code <= 122 || // `_`
+                code === 95) {
+                    name += str[j++];
+                    continue;
+                }
+                break;
+            }
+            if (!name) throw new TypeError("Missing parameter name at ".concat(i));
+            tokens.push({
+                type: "NAME",
+                index: i,
+                value: name
+            });
+            i = j;
+            continue;
+        }
+        if (char === "(") {
+            var count = 1;
+            var pattern = "";
+            var j = i + 1;
+            if (str[j] === "?") {
+                throw new TypeError("Pattern cannot start with \"?\" at ".concat(j));
+            }
+            while(j < str.length){
+                if (str[j] === "\\") {
+                    pattern += str[j++] + str[j++];
+                    continue;
+                }
+                if (str[j] === ")") {
+                    count--;
+                    if (count === 0) {
+                        j++;
+                        break;
+                    }
+                } else if (str[j] === "(") {
+                    count++;
+                    if (str[j + 1] !== "?") {
+                        throw new TypeError("Capturing groups are not allowed at ".concat(j));
+                    }
+                }
+                pattern += str[j++];
+            }
+            if (count) throw new TypeError("Unbalanced pattern at ".concat(i));
+            if (!pattern) throw new TypeError("Missing pattern at ".concat(i));
+            tokens.push({
+                type: "PATTERN",
+                index: i,
+                value: pattern
+            });
+            i = j;
+            continue;
+        }
+        tokens.push({
+            type: "CHAR",
+            index: i,
+            value: str[i++]
+        });
+    }
+    tokens.push({
+        type: "END",
+        index: i,
+        value: ""
+    });
+    return tokens;
+}
+function parse(str, options) {
+    if (options === void 0) {
+        options = {};
+    }
+    var tokens = lexer(str);
+    var _a = options.prefixes, prefixes = _a === void 0 ? "./" : _a, _b = options.delimiter, delimiter = _b === void 0 ? "/#?" : _b;
+    var result = [];
+    var key = 0;
+    var i = 0;
+    var path = "";
+    var tryConsume = function(type) {
+        if (i < tokens.length && tokens[i].type === type) return tokens[i++].value;
+    };
+    var mustConsume = function(type) {
+        var value = tryConsume(type);
+        if (value !== undefined) return value;
+        var _a = tokens[i], nextType = _a.type, index = _a.index;
+        throw new TypeError("Unexpected ".concat(nextType, " at ").concat(index, ", expected ").concat(type));
+    };
+    var consumeText = function() {
+        var result = "";
+        var value;
+        while(value = tryConsume("CHAR") || tryConsume("ESCAPED_CHAR")){
+            result += value;
+        }
+        return result;
+    };
+    var isSafe = function(value) {
+        for(var _i = 0, delimiter_1 = delimiter; _i < delimiter_1.length; _i++){
+            var char = delimiter_1[_i];
+            if (value.indexOf(char) > -1) return true;
+        }
+        return false;
+    };
+    var safePattern = function(prefix) {
+        var prev = result[result.length - 1];
+        var prevText = prefix || (prev && typeof prev === "string" ? prev : "");
+        if (prev && !prevText) {
+            throw new TypeError("Must have text between two parameters, missing text after \"".concat(prev.name, "\""));
+        }
+        if (!prevText || isSafe(prevText)) return "[^".concat(escapeString(delimiter), "]+?");
+        return "(?:(?!".concat(escapeString(prevText), ")[^").concat(escapeString(delimiter), "])+?");
+    };
+    while(i < tokens.length){
+        var char = tryConsume("CHAR");
+        var name = tryConsume("NAME");
+        var pattern = tryConsume("PATTERN");
+        if (name || pattern) {
+            var prefix = char || "";
+            if (prefixes.indexOf(prefix) === -1) {
+                path += prefix;
+                prefix = "";
+            }
+            if (path) {
+                result.push(path);
+                path = "";
+            }
+            result.push({
+                name: name || key++,
+                prefix: prefix,
+                suffix: "",
+                pattern: pattern || safePattern(prefix),
+                modifier: tryConsume("MODIFIER") || ""
+            });
+            continue;
+        }
+        var value = char || tryConsume("ESCAPED_CHAR");
+        if (value) {
+            path += value;
+            continue;
+        }
+        if (path) {
+            result.push(path);
+            path = "";
+        }
+        var open = tryConsume("OPEN");
+        if (open) {
+            var prefix = consumeText();
+            var name_1 = tryConsume("NAME") || "";
+            var pattern_1 = tryConsume("PATTERN") || "";
+            var suffix = consumeText();
+            mustConsume("CLOSE");
+            result.push({
+                name: name_1 || (pattern_1 ? key++ : ""),
+                pattern: name_1 && !pattern_1 ? safePattern(prefix) : pattern_1,
+                prefix: prefix,
+                suffix: suffix,
+                modifier: tryConsume("MODIFIER") || ""
+            });
+            continue;
+        }
+        mustConsume("END");
+    }
+    return result;
+}
+function compile(str, options) {
+    return tokensToFunction(parse(str, options), options);
+}
+function tokensToFunction(tokens, options) {
+    if (options === void 0) {
+        options = {};
+    }
+    var reFlags = flags(options);
+    var _a = options.encode, encode = _a === void 0 ? function(x) {
+        return x;
+    } : _a, _b = options.validate, validate = _b === void 0 ? true : _b;
+    // Compile all the tokens into regexps.
+    var matches = tokens.map(function(token) {
+        if (typeof token === "object") {
+            return new RegExp("^(?:".concat(token.pattern, ")$"), reFlags);
+        }
+    });
+    return function(data) {
+        var path = "";
+        for(var i = 0; i < tokens.length; i++){
+            var token = tokens[i];
+            if (typeof token === "string") {
+                path += token;
+                continue;
+            }
+            var value = data ? data[token.name] : undefined;
+            var optional = token.modifier === "?" || token.modifier === "*";
+            var repeat = token.modifier === "*" || token.modifier === "+";
+            if (Array.isArray(value)) {
+                if (!repeat) {
+                    throw new TypeError("Expected \"".concat(token.name, "\" to not repeat, but got an array"));
+                }
+                if (value.length === 0) {
+                    if (optional) continue;
+                    throw new TypeError("Expected \"".concat(token.name, "\" to not be empty"));
+                }
+                for(var j = 0; j < value.length; j++){
+                    var segment = encode(value[j], token);
+                    if (validate && !matches[i].test(segment)) {
+                        throw new TypeError("Expected all \"".concat(token.name, "\" to match \"").concat(token.pattern, "\", but got \"").concat(segment, "\""));
+                    }
+                    path += token.prefix + segment + token.suffix;
+                }
+                continue;
+            }
+            if (typeof value === "string" || typeof value === "number") {
+                var segment = encode(String(value), token);
+                if (validate && !matches[i].test(segment)) {
+                    throw new TypeError("Expected \"".concat(token.name, "\" to match \"").concat(token.pattern, "\", but got \"").concat(segment, "\""));
+                }
+                path += token.prefix + segment + token.suffix;
+                continue;
+            }
+            if (optional) continue;
+            var typeOfMessage = repeat ? "an array" : "a string";
+            throw new TypeError("Expected \"".concat(token.name, "\" to be ").concat(typeOfMessage));
+        }
+        return path;
+    };
+}
+function match(str, options) {
+    var keys = [];
+    var re = pathToRegexp(str, keys, options);
+    return regexpToFunction(re, keys, options);
+}
+function regexpToFunction(re, keys, options) {
+    if (options === void 0) {
+        options = {};
+    }
+    var _a = options.decode, decode = _a === void 0 ? function(x) {
+        return x;
+    } : _a;
+    return function(pathname) {
+        var m = re.exec(pathname);
+        if (!m) return false;
+        var path = m[0], index = m.index;
+        var params = Object.create(null);
+        var _loop_1 = function(i) {
+            if (m[i] === undefined) return "continue";
+            var key = keys[i - 1];
+            if (key.modifier === "*" || key.modifier === "+") {
+                params[key.name] = m[i].split(key.prefix + key.suffix).map(function(value) {
+                    return decode(value, key);
+                });
+            } else {
+                params[key.name] = decode(m[i], key);
+            }
+        };
+        for(var i = 1; i < m.length; i++){
+            _loop_1(i);
+        }
+        return {
+            path: path,
+            index: index,
+            params: params
+        };
+    };
+}
+/**
+ * Escape a regular expression string.
+ */ function escapeString(str) {
+    return str.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1");
+}
+/**
+ * Get the flags for a regexp from the options.
+ */ function flags(options) {
+    return options && options.sensitive ? "" : "i";
+}
+/**
+ * Pull out keys from a regexp.
+ */ function regexpToRegexp(path, keys) {
+    if (!keys) return path;
+    var groupsRegex = /\((?:\?<(.*?)>)?(?!\?)/g;
+    var index = 0;
+    var execResult = groupsRegex.exec(path.source);
+    while(execResult){
+        keys.push({
+            // Use parenthesized substring match if available, index otherwise
+            name: execResult[1] || index++,
+            prefix: "",
+            suffix: "",
+            modifier: "",
+            pattern: ""
+        });
+        execResult = groupsRegex.exec(path.source);
+    }
+    return path;
+}
+/**
+ * Transform an array into a regexp.
+ */ function arrayToRegexp(paths, keys, options) {
+    var parts = paths.map(function(path) {
+        return pathToRegexp(path, keys, options).source;
+    });
+    return new RegExp("(?:".concat(parts.join("|"), ")"), flags(options));
+}
+/**
+ * Create a path regexp from string input.
+ */ function stringToRegexp(path, keys, options) {
+    return tokensToRegexp(parse(path, options), keys, options);
+}
+function tokensToRegexp(tokens, keys, options) {
+    if (options === void 0) {
+        options = {};
+    }
+    var _a = options.strict, strict = _a === void 0 ? false : _a, _b = options.start, start = _b === void 0 ? true : _b, _c = options.end, end = _c === void 0 ? true : _c, _d = options.encode, encode = _d === void 0 ? function(x) {
+        return x;
+    } : _d, _e = options.delimiter, delimiter = _e === void 0 ? "/#?" : _e, _f = options.endsWith, endsWith = _f === void 0 ? "" : _f;
+    var endsWithRe = "[".concat(escapeString(endsWith), "]|$");
+    var delimiterRe = "[".concat(escapeString(delimiter), "]");
+    var route = start ? "^" : "";
+    // Iterate over the tokens and create our regexp string.
+    for(var _i = 0, tokens_1 = tokens; _i < tokens_1.length; _i++){
+        var token = tokens_1[_i];
+        if (typeof token === "string") {
+            route += escapeString(encode(token));
+        } else {
+            var prefix = escapeString(encode(token.prefix));
+            var suffix = escapeString(encode(token.suffix));
+            if (token.pattern) {
+                if (keys) keys.push(token);
+                if (prefix || suffix) {
+                    if (token.modifier === "+" || token.modifier === "*") {
+                        var mod = token.modifier === "*" ? "?" : "";
+                        route += "(?:".concat(prefix, "((?:").concat(token.pattern, ")(?:").concat(suffix).concat(prefix, "(?:").concat(token.pattern, "))*)").concat(suffix, ")").concat(mod);
+                    } else {
+                        route += "(?:".concat(prefix, "(").concat(token.pattern, ")").concat(suffix, ")").concat(token.modifier);
+                    }
+                } else {
+                    if (token.modifier === "+" || token.modifier === "*") {
+                        throw new TypeError("Can not repeat \"".concat(token.name, "\" without a prefix and suffix"));
+                    }
+                    route += "(".concat(token.pattern, ")").concat(token.modifier);
+                }
+            } else {
+                route += "(?:".concat(prefix).concat(suffix, ")").concat(token.modifier);
+            }
+        }
+    }
+    if (end) {
+        if (!strict) route += "".concat(delimiterRe, "?");
+        route += !options.endsWith ? "$" : "(?=".concat(endsWithRe, ")");
+    } else {
+        var endToken = tokens[tokens.length - 1];
+        var isEndDelimited = typeof endToken === "string" ? delimiterRe.indexOf(endToken[endToken.length - 1]) > -1 : endToken === undefined;
+        if (!strict) {
+            route += "(?:".concat(delimiterRe, "(?=").concat(endsWithRe, "))?");
+        }
+        if (!isEndDelimited) {
+            route += "(?=".concat(delimiterRe, "|").concat(endsWithRe, ")");
+        }
+    }
+    return new RegExp(route, flags(options));
+}
+function pathToRegexp(path, keys, options) {
+    if (path instanceof RegExp) return regexpToRegexp(path, keys);
+    if (Array.isArray(path)) return arrayToRegexp(path, keys, options);
+    return stringToRegexp(path, keys, options);
+}
+}),
+];
+
+//# sourceMappingURL=_0_-sxa0._.js.map

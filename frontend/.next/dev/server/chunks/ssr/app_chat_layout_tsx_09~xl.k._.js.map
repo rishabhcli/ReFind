@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/14697/Downloads/ReFind/frontend/app/chat/layout.tsx"],"sourcesContent":["export default function ChatLayout({\r\n  children,\r\n}: {\r\n  children: React.ReactNode;\r\n}) {\r\n  return <div className=\"flex h-full overflow-hidden\">{children}</div>;\r\n}\r\n"],"names":["ChatLayout","children","className"],"mappings":";;;;;;AAAe,SAASA,WAAW,EACjCC,QAAQ,EAGT;IACC,qBAAO,8OAAC;QAAIC,WAAU;kBAA+BD;;;;;;AACvD"}}]
+}

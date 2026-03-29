@@ -2,7 +2,7 @@
 
 Full pipeline:
   Phase 1 — Intent parsing (LLM or heuristic)
-  Phase 2 — Fast API/scraper sources (eBay, Mercari, Craigslist, Goodwill)
+  Phase 2 — Fast API/scraper sources (Mercari, Craigslist, Goodwill, OfferUp, Facebook)
   Phase 3 — Dedup + 7-dimension scoring
   Phase 4 — Response + negotiation offer
 """
@@ -10,6 +10,7 @@ Full pipeline:
 import asyncio
 import json
 import logging
+import sys
 import re
 import httpx
 from contextlib import asynccontextmanager
@@ -26,11 +27,14 @@ from backend.config import (
     PORT,
     FRONTEND_URL,
 )
-from backend.models.schemas import ChatRequest, ListingCandidate, SearchConstraints
+from backend.models.schemas import ChatRequest, NegotiateRequest, ListingCandidate, SearchConstraints
+from backend.adapters.ebay import search_ebay
 from backend.adapters.mercari import search_mercari
 from backend.adapters.craigslist import search_craigslist
 from backend.adapters.goodwill import search_goodwill
-from backend.adapters.ebay import search_ebay, get_ebay_sold_prices
+from backend.adapters.offerup import search_offerup
+from backend.adapters.facebook import search_facebook
+from backend.adapters.poshmark import search_poshmark
 from backend.adapters.fair_value import get_fair_value
 from backend.tools.scoring import score_listing_7d, deduplicate
 from backend.tools.negotiation import generate_strategy
@@ -40,10 +44,27 @@ logger = logging.getLogger(__name__)
 # ── Condition weights (legacy — kept for discovery scoring) ───────
 _CONDITION_SCORE = {"new": 100, "like_new": 90, "good": 70, "fair": 45, "poor": 20}
 
+DISCOVERY_QUERIES: list[str] = [
+    "mirrorless camera", "wireless headphones", "gaming laptop",
+    "sectional sofa", "office chair", "wood dresser",
+    "road bike", "adjustable dumbbells", "golf clubs",
+    "vintage jacket", "mechanical keyboard", "air fryer",
+    "running shoes", "vinyl record player", "coffee maker",
+    "electric guitar", "camping tent", "drone",
+    "nintendo switch", "leather boots", "cast iron skillet",
+    "bicycle", "sneakers", "iphone", "macbook",
+    "standing desk", "monitor", "backpack", "watch",
+]
+
 DISCOVERY_CATEGORY_QUERIES: dict[str, list[str]] = {
-    "Electronics": ["mirrorless camera", "wireless headphones", "gaming laptop"],
-    "Furniture": ["sectional sofa", "office chair", "wood dresser"],
-    "Sports": ["road bike", "adjustable dumbbells", "golf clubs"],
+    "electronics": ["laptop", "iphone", "macbook", "tablet", "camera", "headphones"],
+    "furniture": ["couch", "sofa", "desk", "chair", "dresser", "bookshelf"],
+    "clothing": ["jacket", "sneakers", "boots", "jeans", "dress", "hoodie"],
+    "sports": ["bicycle", "kayak", "weights", "treadmill", "golf clubs", "skis"],
+    "tools": ["drill", "saw", "toolbox", "ladder", "air compressor"],
+    "vehicles": ["car", "truck", "motorcycle", "scooter", "boat"],
+    "gaming": ["playstation", "xbox", "nintendo switch", "gaming chair", "monitor"],
+    "kitchen": ["stand mixer", "instant pot", "blender", "coffee maker"],
 }
 
 
@@ -193,9 +214,9 @@ def _demo_fallback_for_couch(max_price: float | None) -> list[ListingCandidate]:
     budget = max_price or 200
     return [
         ListingCandidate(
-            source="ebay",
+            source="mercari",
             source_item_id="demo-couch-1",
-            url="https://www.ebay.com/sch/i.html?_nkw=used+sofa",
+            url="https://www.mercari.com/search/?keyword=used+sofa",
             title="Used 3-seat sectional couch (used) in good condition",
             price=min(185, budget),
             condition="good",
@@ -314,7 +335,6 @@ async def _load_discovery_category(category: str, zip_code: str) -> list[Listing
     tertiary_query = queries[2] if len(queries) > 2 else secondary_query
 
     results = await asyncio.gather(
-        _safe_listing_search(search_ebay(primary_query, 0, zip_code), timeout=8.0),
         _safe_listing_search(search_mercari(primary_query, 0), timeout=8.0),
         _safe_listing_search(search_craigslist(secondary_query, 0, zip_code), timeout=8.0),
         _safe_listing_search(search_goodwill(tertiary_query, 0), timeout=8.0),
@@ -397,14 +417,14 @@ def _score_listing(
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("🔍 ReFind Agent Backend starting...")
+    print("ReFind Agent Backend starting...")
     # Initialize the singleton browser (Playwright persistent context)
     try:
         from backend.browser import init_browser
         await init_browser()
-        print("🌐 Browser initialized")
+        print("Browser initialized")
     except Exception as exc:
-        print(f"⚠️  Browser init failed (browser features disabled): {exc}")
+        print(f"Browser init failed (browser features disabled): {exc}")
     yield
     # Shutdown browser
     try:
@@ -435,26 +455,72 @@ async def health():
 
 @app.get("/api/trending")
 async def trending(zip: str = "10001"):
-    """Parallel category searches across available sources for the Discovery Screen."""
-    response: dict[str, list] = {}
+    """Pick random queries, search across sources, return a flat shuffled list."""
+    import random
+
+    picked = random.sample(DISCOVERY_QUERIES, min(6, len(DISCOVERY_QUERIES)))
+
+    async def _search_one(query: str) -> list[ListingCandidate]:
+        results = await asyncio.gather(
+            _safe_listing_search(search_mercari(query, 0), timeout=8.0),
+            _safe_listing_search(search_craigslist(query, 0, zip), timeout=8.0),
+            _safe_listing_search(search_goodwill(query, 0), timeout=8.0),
+            return_exceptions=False,
+        )
+        merged: list[ListingCandidate] = []
+        for batch in results:
+            if isinstance(batch, list):
+                merged.extend(batch[:4])
+        return merged
 
     try:
-        categories = list(DISCOVERY_CATEGORY_QUERIES)
-        results = await asyncio.gather(
-            *[_load_discovery_category(category, zip) for category in categories],
+        batches = await asyncio.gather(
+            *[_search_one(q) for q in picked],
             return_exceptions=True,
         )
+        all_items: list[ListingCandidate] = []
+        for batch in batches:
+            if isinstance(batch, list):
+                all_items.extend(batch)
 
-        for category, result in zip(categories, results):
-            if isinstance(result, Exception):
-                response[category] = [listing.model_dump() for listing in _fallback_listings(category)]
-            else:
-                response[category] = [listing.model_dump() for listing in result]
+        # Filter out items with no image
+        with_images = [
+            item for item in all_items
+            if item.image_urls and any(
+                url and url.startswith("http") and "placehold" not in url
+                for url in item.image_urls
+            )
+        ]
+        random.shuffle(with_images)
+        items = with_images[:36]
     except Exception:
-        for category in DISCOVERY_CATEGORY_QUERIES:
-            response[category] = [listing.model_dump() for listing in _fallback_listings(category)]
+        items = []
 
-    return response
+    # Fallback to static data if live search returned nothing
+    if not items:
+        fallback_all: list[ListingCandidate] = []
+        for cat_fallbacks in DISCOVERY_FALLBACKS.values():
+            fallback_all.extend(_fallback_listings_from_raw(cat_fallbacks))
+        random.shuffle(fallback_all)
+        items = fallback_all[:36]
+
+    return {"listings": [item.model_dump() for item in items]}
+
+
+def _fallback_listings_from_raw(raw_list: list[dict]) -> list[ListingCandidate]:
+    result = []
+    for raw in raw_list:
+        result.append(ListingCandidate(
+            source=str(raw["source"]),
+            source_item_id=str(raw["source_item_id"]),
+            url=str(raw["url"]),
+            title=str(raw["title"]),
+            price=float(raw.get("price", 0)),
+            condition="good",
+            image_urls=[str(raw["image_url"])] if raw.get("image_url") else [],
+            location_text=str(raw.get("location", "")),
+        ))
+    return result
 
 
 # ── /api/agent/chat — Full parallel pipeline ─────────────────────
@@ -549,74 +615,117 @@ async def agent_chat(request: ChatRequest):
                 yield {"event": "message", "data": "[DONE]"}
                 return
 
-            # ── Wave 1: Fast API/scraper sources ─────────────────
+            # ── Wave 1: Fast sources (no browser required) ────────
+            # eBay Browse API, Mercari unofficial API, Craigslist HTML, Goodwill JSON
             wave1_adapters: list[tuple[str, str, object, list]] = [
-                ("adapter-ebay",       "search_ebay",       search_ebay,       [constraints.item, constraints.max_price or 0]),
+                ("adapter-ebay",       "search_ebay",       search_ebay,       [constraints.item, constraints.max_price or 0, constraints.zip_code or ""]),
                 ("adapter-mercari",    "search_mercari",    search_mercari,    [constraints.item, constraints.max_price or 0]),
                 ("adapter-craigslist", "search_craigslist", search_craigslist, [constraints.item, constraints.max_price or 0, constraints.zip_code or ""]),
                 ("adapter-goodwill",   "search_goodwill",   search_goodwill,   [constraints.item, constraints.max_price or 0]),
             ]
 
-            all_adapters = wave1_adapters
+            # Wave 2: Browser-required sources (Facebook, OfferUp, Poshmark)
+            wave2_adapters: list[tuple[str, str, object, list]] = [
+                ("adapter-facebook",  "search_facebook",  search_facebook,  [constraints.item, constraints.max_price or 0]),
+                ("adapter-offerup",   "search_offerup",   search_offerup,   [constraints.item, constraints.max_price or 0]),
+                ("adapter-poshmark",  "search_poshmark",  search_poshmark,  [constraints.item, constraints.max_price or 0]),
+            ]
 
-            # Emit tool_calls for all sources up front
-            for tc_id, tool_name, _, _ in all_adapters:
-                yield _sse({
+            all_listings: list[ListingCandidate] = []
+            source_status: dict[str, str] = {}
+            location_str = constraints.location or constraints.zip_code or ""
+
+            # Helper: run one adapter task and put results into the given queue
+            async def _wave_task(
+                tc_id: str,
+                tool_name: str,
+                fn,
+                args: list,
+                timeout: float,
+                out_queue: asyncio.Queue,
+            ):
+                events_and_listings: list = []
+                events_and_listings.append(("event", _sse({
                     "type": "tool_call",
                     "tool_call_id": tc_id,
                     "tool_name": tool_name,
                     "args": {
                         "query": constraints.item,
                         "max_price": constraints.max_price,
-                        "zip_code": constraints.zip_code,
+                        "location": location_str,
                     },
-                })
-
-            # Run all adapters with per-wave timeouts
-            result_queue: asyncio.Queue = asyncio.Queue()
-
-            async def _run(tc_id: str, fn, args: list, timeout: float):
+                })))
                 try:
                     listings = await asyncio.wait_for(fn(*args), timeout=timeout)
-                    await result_queue.put((tc_id, listings, None))
+                    error = None
                 except Exception as exc:
-                    await result_queue.put((tc_id, [], str(exc)))
-
-            tasks = []
-            for tc_id, _, fn, args in wave1_adapters:
-                tasks.append(asyncio.create_task(_run(tc_id, fn, args, timeout=8.0)))
-
-            all_listings: list[ListingCandidate] = []
-            source_status: dict[str, str] = {}
-            for _ in range(len(all_adapters)):
-                tc_id, listings, error = await result_queue.get()
-                all_listings.extend(listings)
-                status = "error" if error else "complete"
-                source_status[tc_id] = status
-                yield _sse({
+                    listings = []
+                    error = str(exc)
+                events_and_listings.append(("event", _sse({
                     "type": "tool_result",
                     "tool_call_id": tc_id,
                     "result": {
                         "count": len(listings),
-                        "status": status,
-                        "error": error if error else None,
+                        "status": "complete" if error is None else "failed",
+                        "error": error,
                     },
-                })
+                })))
+                events_and_listings.append(("listings", listings))
+                events_and_listings.append(("status", (tc_id, "error" if error else "complete")))
+                await out_queue.put(events_and_listings)
 
-            await asyncio.gather(*tasks, return_exceptions=True)
+            # ── Wave 1: Fast sources (eBay, Mercari, Craigslist, Goodwill) ──
+            wave1_queue: asyncio.Queue = asyncio.Queue()
+            wave1_tasks = [
+                asyncio.create_task(
+                    _wave_task(tc_id, tool_name, fn, args, timeout=12.0, out_queue=wave1_queue)
+                )
+                for tc_id, tool_name, fn, args in wave1_adapters
+            ]
+
+            for _ in range(len(wave1_adapters)):
+                items = await wave1_queue.get()
+                for kind, payload in items:
+                    if kind == "event":
+                        yield payload
+                    elif kind == "listings":
+                        all_listings.extend(payload)
+                    elif kind == "status":
+                        tc_id_done, st = payload
+                        source_status[tc_id_done] = st
+
+            await asyncio.gather(*wave1_tasks, return_exceptions=True)
+
+            # ── Wave 2: Browser-required sources (Facebook, OfferUp, Poshmark) ──
+            wave2_queue: asyncio.Queue = asyncio.Queue()
+            wave2_tasks = [
+                asyncio.create_task(
+                    _wave_task(tc_id, tool_name, fn, args, timeout=30.0, out_queue=wave2_queue)
+                )
+                for tc_id, tool_name, fn, args in wave2_adapters
+            ]
+
+            for _ in range(len(wave2_adapters)):
+                items = await wave2_queue.get()
+                for kind, payload in items:
+                    if kind == "event":
+                        yield payload
+                    elif kind == "listings":
+                        all_listings.extend(payload)
+                    elif kind == "status":
+                        tc_id_done, st = payload
+                        source_status[tc_id_done] = st
+
+            await asyncio.gather(*wave2_tasks, return_exceptions=True)
 
             # ── Phase 3: Dedup + 7-dimension scoring ─────────────
             yield _sse({"type": "tool_call", "tool_call_id": "score", "tool_name": "score_deal", "args": {}})
 
             all_listings = deduplicate(all_listings)
 
-            # Get fair value and eBay sold median for scoring
+            # Get fair value for scoring
             fair_low, fair_high = await get_fair_value(constraints.item)
-            try:
-                sold_prices = await get_ebay_sold_prices(constraints.item)
-                median_sold = sorted(sold_prices)[len(sold_prices) // 2] if sold_prices else 0.0
-            except Exception:
-                median_sold = 0.0
+            median_sold = 0.0
 
             scored = [
                 score_listing_7d(
@@ -641,10 +750,44 @@ async def agent_chat(request: ChatRequest):
                 "result": {"count": len(scored), "status": "complete"},
             })
 
-            top = scored[:5]
+            top10 = scored[:10]
 
-            # ── Phase 4: Emit results ─────────────────────────────
-            # 5a. Deal cards with 7-dimension bars
+            # ── Phase 3b: Browser enrichment of top 3 ────────────
+            try:
+                from backend.tools.enrichment import enrich_listing
+                top3 = top10[:3]
+                for enrich_idx, listing in enumerate(top3):
+                    enrich_tc_id = f"browser_enricher-{enrich_idx}"
+                    yield _sse({
+                        "type": "tool_call",
+                        "tool_call_id": enrich_tc_id,
+                        "tool_name": "browser_enricher",
+                        "args": {
+                            "title": listing.title,
+                            "url": listing.url,
+                            "source": listing.source,
+                        },
+                    })
+                    try:
+                        enriched = await enrich_listing(listing)
+                        top10[enrich_idx] = enriched
+                        yield _sse({
+                            "type": "tool_result",
+                            "tool_call_id": enrich_tc_id,
+                            "result": {"status": "complete"},
+                        })
+                    except Exception as enrich_exc:
+                        yield _sse({
+                            "type": "tool_result",
+                            "tool_call_id": enrich_tc_id,
+                            "result": {"status": "failed", "error": str(enrich_exc)},
+                        })
+            except Exception:
+                pass  # Enrichment is non-fatal
+
+            top = top10[:5]
+
+            # ── Phase 4: Emit deal cards ──────────────────────────
             for i, listing in enumerate(top):
                 tc_id = f"deal-{i}"
                 yield _sse({
@@ -655,7 +798,7 @@ async def agent_chat(request: ChatRequest):
                 })
                 yield _sse({"type": "tool_result", "tool_call_id": tc_id, "result": {}})
 
-            # 5b. Market summary text
+            # ── Phase 5: Market summary text ──────────────────────
             sources_used = sorted({l.source for l in all_listings})
             failed_sources = [k.replace("adapter-", "") for k, v in source_status.items() if v == "error"]
             prices = [l.price for l in all_listings if l.price > 0]
@@ -663,46 +806,98 @@ async def agent_chat(request: ChatRequest):
             price_max = max(prices) if prices else 0
 
             summary_parts = []
+
+            # Section 1: Market Summary
+            agent_assessment = ""
+            if fair_high > 0 and prices:
+                avg_listed = sum(prices) / len(prices)
+                if avg_listed < fair_low * 0.7:
+                    agent_assessment = "Strong buyer's market — most listings are well below retail."
+                elif avg_listed < fair_low:
+                    agent_assessment = "Good deals available — listings are below typical retail value."
+                elif avg_listed < fair_high:
+                    agent_assessment = "Mixed market — some deals exist but prices vary widely."
+                else:
+                    agent_assessment = "Prices are near or above retail — be selective."
+            elif prices:
+                agent_assessment = "Market data limited — compare prices carefully before buying."
+
             summary_parts.append(
-                f"## 📊 Market Summary\n"
+                f"## Market Summary\n"
                 f"Found **{len(all_listings)} listings** across "
-                f"{len(sources_used)} source{'s' if len(sources_used) != 1 else ''} "
+                f"**{len(sources_used)} source{'s' if len(sources_used) != 1 else ''}** "
                 f"({', '.join(sources_used)}).\n"
                 f"Price range: **${price_min:.0f}–${price_max:.0f}**"
             )
             if fair_high > 0:
                 summary_parts.append(f"Fair market value: **${fair_low:.0f}–${fair_high:.0f}**")
-            if median_sold > 0:
-                summary_parts.append(f"eBay sold median (30d): **${median_sold:.0f}**")
+            if agent_assessment:
+                summary_parts.append(f"Agent assessment: {agent_assessment}")
 
-            # Best pick
+            # Section 2: Top Recommendations
             if top:
-                best = top[0]
+                summary_parts.append("\n## Top Recommendations")
                 summary_parts.append(
-                    f"\n## 🏆 Best Pick: {best.title}\n"
-                    f"**${best.price:.0f}** on {best.source} — "
-                    f"Deal Score: **{best.deal_score:.0f}/100**\n"
-                    f"Recommended offer: **${best.recommended_offer:.0f}**\n"
-                    f"Value gap: {best.value_gap_pct:+.0%} vs fair value"
+                    "The deal cards above show the top picks ranked by our 7-dimension scoring: "
+                    "value gap, distance, condition, seller reputation, freshness, image quality, and description completeness."
                 )
 
-            # Worst deals callout
-            overpriced = [l for l in scored if l.deal_score < 30 and l.price > 0][:2]
-            if overpriced:
-                summary_parts.append("\n## ⚠️ Overpriced/Suspicious Listings")
-                for op in overpriced:
-                    summary_parts.append(
-                        f"- **{op.title}** (${op.price:.0f}) on {op.source} — Score: {op.deal_score:.0f}"
+            # Section 3: Best Pick
+            if top:
+                best = top[0]
+                condition_label = best.condition.replace("_", " ").title()
+                best_pick_lines = [
+                    f"\n## Best Pick: {best.title}",
+                    f"**${best.price:.0f}** on **{best.source}** — Deal Score: **{best.deal_score:.0f}/100**",
+                    f"Condition: {condition_label} | Recommended offer: **${best.recommended_offer:.0f}**",
+                ]
+                if best.value_gap_pct != 0:
+                    best_pick_lines.append(f"Value gap: {best.value_gap_pct:+.0%} vs fair value")
+                if best.location_text:
+                    best_pick_lines.append(f"Location: {best.location_text}")
+                if best.full_description:
+                    best_pick_lines.append(f"Seller says: _{best.full_description[:200]}_")
+                summary_parts.append("\n".join(best_pick_lines))
+
+            # Section 4: Location Guide
+            local_listings = [l for l in top if l.is_local_pickup and l.location_text]
+            if local_listings:
+                summary_parts.append("\n## Location Guide")
+                for loc_l in local_listings[:3]:
+                    loc_line = f"- **{loc_l.title}** (${loc_l.price:.0f}) — {loc_l.location_text} on {loc_l.source}"
+                    if loc_l.pickup_available:
+                        loc_line += " — local pickup available"
+                    elif loc_l.is_local_pickup:
+                        loc_line += " — local pickup"
+                    summary_parts.append(loc_line)
+
+            # Section 5: Watch Out For
+            overpriced = [l for l in scored if l.deal_score < 30 and l.price > 0][:3]
+            suspicious = [l for l in scored if l.seller_rating > 0 and l.seller_rating < 3.0][:2]
+            watch_items = []
+            for op in overpriced:
+                watch_items.append(
+                    f"- **{op.title}** (${op.price:.0f}) on {op.source} — "
+                    f"Score only {op.deal_score:.0f}/100; likely overpriced"
+                )
+            for sus in suspicious:
+                if sus not in overpriced:
+                    watch_items.append(
+                        f"- **{sus.title}** (${sus.price:.0f}) on {sus.source} — "
+                        f"Low seller rating ({sus.seller_rating:.1f}/5)"
                     )
+            if watch_items:
+                summary_parts.append("\n## Watch Out For")
+                summary_parts.extend(watch_items)
 
             if failed_sources:
-                summary_parts.append(f"\n_⚠️ Failed sources: {', '.join(failed_sources)}_")
+                summary_parts.append(f"\n_Note: Could not reach: {', '.join(failed_sources)}_")
 
             # Negotiation prompt
             if top:
                 summary_parts.append(
                     "\n---\n"
-                    "Would you like me to contact any of these sellers with a negotiation offer? "
+                    "Would you like me to contact any of these sellers to negotiate a lower price? "
                     "I can draft a message, show you the strategy, and send it with your approval."
                 )
 
@@ -725,12 +920,6 @@ async def agent_chat(request: ChatRequest):
 
 # ── /api/negotiate — Negotiation pipeline ────────────────────────
 
-class NegotiateRequest(ChatRequest):
-    listing_id: str
-    action: str = "generate"  # "generate" | "send" | "check_reply"
-    message_override: str | None = None
-
-
 @app.post("/api/negotiate")
 async def negotiate(request: NegotiateRequest):
     """Negotiation pipeline: generate strategy, send message, or check replies."""
@@ -742,18 +931,17 @@ async def negotiate(request: NegotiateRequest):
 
         try:
             if request.action == "generate":
-                # Build a mock ListingCandidate with the listing_id
-                # In production this would fetch from a session store
-                strategy = generate_strategy(
-                    ListingCandidate(
-                        source="",
-                        source_item_id=request.listing_id,
-                        url="",
-                        title=request.message,
-                        price=0,
-                        condition="good",
-                    )
+                # Build a ListingCandidate from request fields for strategy generation
+                listing = ListingCandidate(
+                    source=request.source or "",
+                    source_item_id=request.listing_id or "",
+                    url=request.listing_url or "",
+                    title=request.message or "",
+                    price=request.recommended_offer or 0,
+                    condition="good",
+                    recommended_offer=request.recommended_offer or 0,
                 )
+                strategy = generate_strategy(listing)
                 yield _sse({
                     "type": "tool_call",
                     "tool_call_id": "negotiate",
@@ -771,12 +959,16 @@ async def negotiate(request: NegotiateRequest):
                     "type": "tool_call",
                     "tool_call_id": "send-msg",
                     "tool_name": "send_message",
-                    "args": {"listing_id": request.listing_id},
+                    "args": {
+                        "listing_id": request.listing_id,
+                        "listing_url": request.listing_url,
+                        "source": request.source,
+                    },
                 })
                 result = await send_message_via_browser(
-                    listing_url="",  # Would come from session store
-                    message_text=request.message_override or request.message,
-                    source="",
+                    listing_url=request.listing_url or "",
+                    message_text=request.message_override or request.message or "",
+                    source=request.source or "",
                 )
                 yield _sse({
                     "type": "tool_result",
@@ -789,13 +981,17 @@ async def negotiate(request: NegotiateRequest):
                     "type": "tool_call",
                     "tool_call_id": "check-reply",
                     "tool_name": "check_reply",
-                    "args": {"listing_id": request.listing_id},
+                    "args": {
+                        "listing_id": request.listing_id,
+                        "listing_url": request.listing_url,
+                        "source": request.source,
+                    },
                 })
                 result = await check_for_reply(
-                    listing_url="",
-                    source="",
-                    recommended_offer=0,
-                    walk_away_price=0,
+                    listing_url=request.listing_url or "",
+                    source=request.source or "",
+                    recommended_offer=request.recommended_offer or 0,
+                    walk_away_price=request.walk_away_price or 0,
                 )
                 yield _sse({
                     "type": "tool_result",

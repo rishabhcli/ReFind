@@ -1,0 +1,40 @@
+
+> frontend@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.104.2.224:3000
+- Environments: .env
+✓ Ready in 539ms
+
+ GET / 200 in 759ms (next.js: 197ms, proxy.ts: 287ms, application-code: 275ms)
+ GET / 200 in 85ms (next.js: 6ms, proxy.ts: 12ms, application-code: 67ms)
+ POST / 200 in 60ms (next.js: 7ms, proxy.ts: 19ms, application-code: 34ms)
+  └─ ƒ getAuthAction({"ensureSignedIn":false}) in 11ms node_modules/@workos-inc/authkit-nextjs/dist/esm/actions.js
+ GET / 200 in 72ms (next.js: 5ms, proxy.ts: 8ms, application-code: 59ms)
+ POST / 200 in 30ms (next.js: 4ms, proxy.ts: 9ms, application-code: 17ms)
+  └─ ƒ getAuthAction({"ensureSignedIn":false}) in 8ms node_modules/@workos-inc/authkit-nextjs/dist/esm/actions.js
+ POST / 200 in 54ms (next.js: 7ms, proxy.ts: 30ms, application-code: 18ms)
+  └─ ƒ checkSessionAction() in 1ms node_modules/@workos-inc/authkit-nextjs/dist/esm/actions.js
+ POST / 200 in 25ms (next.js: 5ms, proxy.ts: 11ms, application-code: 9ms)
+  └─ ƒ checkSessionAction() in 0ms node_modules/@workos-inc/authkit-nextjs/dist/esm/actions.js
+ POST / 200 in 26ms (next.js: 6ms, proxy.ts: 13ms, application-code: 7ms)
+  └─ ƒ checkSessionAction() in 0ms node_modules/@workos-inc/authkit-nextjs/dist/esm/actions.js
+ POST / 200 in 54ms (next.js: 23ms, proxy.ts: 17ms, application-code: 14ms)
+  └─ ƒ checkSessionAction() in 0ms node_modules/@workos-inc/authkit-nextjs/dist/esm/actions.js
+✓ Compiled in 840ms
+ GET / 200 in 858ms (next.js: 652ms, proxy.ts: 72ms, application-code: 134ms)
+ GET / 200 in 192ms (next.js: 91ms, proxy.ts: 47ms, application-code: 55ms)
+ GET / 200 in 72ms (next.js: 9ms, proxy.ts: 7ms, application-code: 55ms)
+ GET / 200 in 40ms (next.js: 7ms, proxy.ts: 7ms, application-code: 27ms)
+ GET / 200 in 35ms (next.js: 5ms, proxy.ts: 4ms, application-code: 26ms)
+ GET / 200 in 32ms (next.js: 6ms, proxy.ts: 5ms, application-code: 21ms)
+ POST / 200 in 27ms (next.js: 5ms, proxy.ts: 10ms, application-code: 12ms)
+  └─ ƒ checkSessionAction() in 0ms node_modules/@workos-inc/authkit-nextjs/dist/esm/actions.js
+ POST / 200 in 32ms (next.js: 5ms, proxy.ts: 9ms, application-code: 18ms)
+  └─ ƒ checkSessionAction() in 0ms node_modules/@workos-inc/authkit-nextjs/dist/esm/actions.js
+ GET / 200 in 204ms (next.js: 6ms, proxy.ts: 9ms, application-code: 190ms)
+○ Compiling /chat ...
+ GET /chat 200 in 8.3s (next.js: 7.6s, proxy.ts: 41ms, application-code: 694ms)
+[?25h

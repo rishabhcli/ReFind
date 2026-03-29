@@ -1,7 +1,20 @@
 import os
+import logging
 from pathlib import Path
 from dotenv import load_dotenv
-import railtracks as rt
+
+_logger = logging.getLogger(__name__)
+
+try:
+    import railtracks as rt
+    _RAILTRACKS_AVAILABLE = True
+except ImportError:
+    rt = None  # type: ignore[assignment]
+    _RAILTRACKS_AVAILABLE = False
+    _logger.warning(
+        "railtracks not installed (Windows long-path issue). "
+        "Agent nodes disabled; main pipeline uses httpx directly."
+    )
 
 _backend_dir = Path(__file__).parent
 
@@ -23,6 +36,10 @@ if OPENAI_API_KEY:
     DO_INFERENCE_API_KEY = OPENAI_API_KEY
     DO_INFERENCE_BASE_URL = "https://api.openai.com/v1/"
     MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
+elif GOOGLE_AI_API_KEY:
+    DO_INFERENCE_API_KEY = GOOGLE_AI_API_KEY
+    DO_INFERENCE_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+    MODEL_NAME = GEMINI_MODEL
 elif _DO_KEY:
     DO_INFERENCE_API_KEY = _DO_KEY
     DO_INFERENCE_BASE_URL = _DO_BASE
@@ -32,12 +49,16 @@ else:
     DO_INFERENCE_BASE_URL = _DO_BASE
     MODEL_NAME = _DO_MODEL
 
-# Create the LLM instance using OpenAI-compatible provider
-llm = rt.llm.OpenAICompatibleProvider(
-    model_name=MODEL_NAME,
-    api_base=DO_INFERENCE_BASE_URL,
-    api_key=DO_INFERENCE_API_KEY,
-) if DO_INFERENCE_API_KEY else None
+# Create the LLM instance using OpenAI-compatible provider (railtracks agents only)
+# The main pipeline uses httpx directly and does not need this.
+if _RAILTRACKS_AVAILABLE and DO_INFERENCE_API_KEY:
+    llm = rt.llm.OpenAICompatibleProvider(  # type: ignore[union-attr]
+        model_name=MODEL_NAME,
+        api_base=DO_INFERENCE_BASE_URL,
+        api_key=DO_INFERENCE_API_KEY,
+    )
+else:
+    llm = None
 
 # ── eBay API ──────────────────────────────────────────────────────
 EBAY_CLIENT_ID = os.getenv("EBAY_CLIENT_ID", "")

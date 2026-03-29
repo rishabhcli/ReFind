@@ -1,0 +1,13 @@
+2026/03/28-17:47:08.725 1090 Reusing MANIFEST c:\Users\14697\Downloads\ReFind\backend\.browser_data\Default\IndexedDB\https_offerup.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/03/28-17:47:08.725 1090 Recovering log #7
+2026/03/28-17:47:08.725 1090 Reusing old log c:\Users\14697\Downloads\ReFind\backend\.browser_data\Default\IndexedDB\https_offerup.com_0.indexeddb.leveldb/000007.log 
+2026/03/28-17:47:08.836 c1c Level-0 table #11: started
+2026/03/28-17:47:08.837 c1c Level-0 table #11: 2069 bytes OK
+2026/03/28-17:47:08.838 c1c Delete type=0 #7
+2026/03/28-17:47:08.839 4978 Manual compaction at level-0 from '\x00\x04\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x05\x00\x00\x00' @ 0 : 0; will stop at '\x00\x04\x00\x00\x05' @ 133 : 1
+2026/03/28-17:47:08.840 4978 Compacting 1@0 + 1@1 files
+2026/03/28-17:47:08.841 4978 Generated table #12@0: 42 keys, 1644 bytes
+2026/03/28-17:47:08.842 4978 Compacted 1@0 + 1@1 files => 1644 bytes
+2026/03/28-17:47:08.842 4978 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/03/28-17:47:08.842 4978 Delete type=2 #11
+2026/03/28-17:47:08.843 4978 Manual compaction at level-0 from '\x00\x04\x00\x00\x05' @ 133 : 1 .. '\x00\x05\x00\x00\x00' @ 0 : 0; will stop at (end)

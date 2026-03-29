@@ -17,77 +17,147 @@ type TrendingListing = {
   fair_value_high: number;
 };
 
-type TrendingResponse = {
+type TrendingApiResponse = {
+  listings: TrendingListing[];
+};
+
+type TrendingBuckets = {
   Electronics: TrendingListing[];
   Furniture: TrendingListing[];
   Sports: TrendingListing[];
 };
 
-const FALLBACK_TRENDING: TrendingResponse = {
+type Category = keyof TrendingBuckets;
+
+const CATEGORIES: Category[] = ["Electronics", "Furniture", "Sports"];
+const KEYWORDS: Record<Category, RegExp[]> = {
   Electronics: [
-    makeFallback("mercari", "electronics-1", "Sony mirrorless camera body", 420, "Mirrorless+Camera", "San Jose, CA"),
-    makeFallback("mercari", "electronics-2", "Noise-cancelling wireless headphones", 145, "Headphones", "Oakland, CA"),
-    makeFallback("craigslist", "electronics-3", "RTX gaming laptop", 680, "Gaming+Laptop", "San Francisco, CA"),
-    makeFallback("goodwill", "electronics-4", "Portable Bluetooth speaker", 55, "Bluetooth+Speaker", "Online"),
-    makeFallback("offerup", "electronics-5", "Mechanical keyboard", 70, "Keyboard", "Berkeley, CA"),
-    makeFallback("mercari", "electronics-6", "GPS smartwatch", 120, "Smartwatch", "Palo Alto, CA"),
+    /camera/i,
+    /monitor/i,
+    /keyboard/i,
+    /speaker/i,
+    /headphones/i,
+    /console/i,
+    /nintendo/i,
+    /playstation/i,
+    /xbox/i,
+    /iphone/i,
+    /laptop/i,
+    /tablet/i,
+    /macbook/i,
+    /tv/i,
+    /audio/i,
   ],
   Furniture: [
-    makeFallback("craigslist", "furniture-1", "Modern sectional sofa", 280, "Sectional+Sofa", "San Francisco, CA"),
-    makeFallback("offerup", "furniture-2", "Ergonomic office chair", 95, "Office+Chair", "San Mateo, CA"),
-    makeFallback("goodwill", "furniture-3", "Solid wood bookshelf", 88, "Bookshelf", "Online"),
-    makeFallback("mercari", "furniture-4", "Mid-century coffee table", 135, "Coffee+Table", "San Bruno, CA"),
-    makeFallback("offerup", "furniture-5", "Ceramic table lamp pair", 62, "Table+Lamp", "Redwood City, CA"),
-    makeFallback("mercari", "furniture-6", "Six-drawer wood dresser", 210, "Dresser", "San Jose, CA"),
+    /sofa/i,
+    /sectional/i,
+    /couch/i,
+    /chair/i,
+    /table/i,
+    /desk/i,
+    /dresser/i,
+    /bed/i,
+    /bookshelf/i,
+    /cabinet/i,
+    /lamp/i,
+    /ottoman/i,
+    /stool/i,
+    /mirror/i,
   ],
   Sports: [
-    makeFallback("craigslist", "sports-1", "Carbon road bike", 540, "Road+Bike", "San Francisco, CA"),
-    makeFallback("offerup", "sports-2", "Adjustable dumbbell set", 160, "Dumbbells", "Daly City, CA"),
-    makeFallback("mercari", "sports-3", "Complete golf club set", 225, "Golf+Clubs", "Oakland, CA"),
-    makeFallback("goodwill", "sports-4", "Tennis racket bundle", 48, "Tennis+Racket", "Online"),
-    makeFallback("goodwill", "sports-5", "Street skateboard complete", 72, "Skateboard", "Berkeley, CA"),
-    makeFallback("mercari", "sports-6", "Fitness watch", 110, "Fitness+Watch", "San Jose, CA"),
+    /bike/i,
+    /bicycle/i,
+    /helmet/i,
+    /camping/i,
+    /tent/i,
+    /dumbbell/i,
+    /weights?/i,
+    /golf/i,
+    /soccer/i,
+    /basketball/i,
+    /baseball/i,
+    /fitness/i,
+    /exercise/i,
+    /ski/i,
+    /snowboard/i,
   ],
 };
 
-function fallbackImage(category: string, title: string, idSeed: string) {
-  const slug = `${category.toLowerCase()} ${title.toLowerCase()} ${idSeed}`.replace(
-    /[^a-z0-9]+/gi,
-    "-"
-  );
-  return `https://picsum.photos/seed/${encodeURIComponent(slug)}/600/600`;
-}
-
 function makeFallback(
   source: string,
-  sourceItemId: string,
+  id: string,
   title: string,
   price: number,
-  imageText: string,
-  locationText: string,
+  location: string,
 ): TrendingListing {
   return {
     source,
-    source_item_id: sourceItemId,
+    source_item_id: id,
     url: "#",
     title,
     price,
     condition: "good",
-    image_urls: [fallbackImage(imageText, title, sourceItemId)],
-    location_text: locationText,
-    deal_score: 78,
-    fair_value_low: Math.max(price - 40, 10),
-    fair_value_high: price + 55,
+    image_urls: [],
+    location_text: location,
+    deal_score: 0,
+    fair_value_low: 0,
+    fair_value_high: 0,
   };
 }
 
-function hasContent(data: Partial<TrendingResponse> | null | undefined) {
-  if (!data) return false;
-  return (
-    (data.Electronics?.length ?? 0) > 0 ||
-    (data.Furniture?.length ?? 0) > 0 ||
-    (data.Sports?.length ?? 0) > 0
-  );
+const FALLBACK: TrendingApiResponse = {
+  listings: [
+    makeFallback("mercari", "fb-1", "Sony mirrorless camera body", 420, "San Jose, CA"),
+    makeFallback("craigslist", "fb-2", "Modern sectional sofa", 280, "San Francisco, CA"),
+    makeFallback("goodwill", "fb-3", "Vintage leather jacket", 45, "Online"),
+    makeFallback("offerup", "fb-4", "Nintendo Switch OLED bundle", 230, "Oakland, CA"),
+    makeFallback("mercari", "fb-5", "Noise-cancelling headphones", 145, "Palo Alto, CA"),
+    makeFallback("craigslist", "fb-6", "Carbon road bike", 540, "Berkeley, CA"),
+    makeFallback("goodwill", "fb-7", "Cast iron skillet set", 32, "Online"),
+    makeFallback("mercari", "fb-8", "Mechanical keyboard RGB", 70, "San Mateo, CA"),
+    makeFallback("offerup", "fb-9", "Camping tent 4-person", 95, "Daly City, CA"),
+    makeFallback("craigslist", "fb-10", "Adjustable dumbbell set", 160, "San Jose, CA"),
+    makeFallback("mercari", "fb-11", "Vinyl record player", 120, "Oakland, CA"),
+    makeFallback("goodwill", "fb-12", "Electric guitar with amp", 180, "Online"),
+  ],
+};
+
+function classifyListing(listing: TrendingListing): Category | null {
+  for (const category of CATEGORIES) {
+    if (KEYWORDS[category].some((pattern) => pattern.test(listing.title))) {
+      return category;
+    }
+  }
+
+  return null;
+}
+
+function normalizeTrendingResponse(payload: TrendingApiResponse): TrendingBuckets {
+  const buckets: TrendingBuckets = {
+    Electronics: [],
+    Furniture: [],
+    Sports: [],
+  };
+  const leftovers: TrendingListing[] = [];
+
+  for (const listing of payload.listings) {
+    const category = classifyListing(listing);
+
+    if (category) {
+      buckets[category].push(listing);
+    } else {
+      leftovers.push(listing);
+    }
+  }
+
+  for (const listing of leftovers) {
+    const target = CATEGORIES.reduce((smallest, category) => {
+      return buckets[category].length < buckets[smallest].length ? category : smallest;
+    }, CATEGORIES[0]);
+    buckets[target].push(listing);
+  }
+
+  return buckets;
 }
 
 export async function GET(req: NextRequest) {
@@ -99,9 +169,9 @@ export async function GET(req: NextRequest) {
     });
 
     if (res.ok) {
-      const data = (await res.json()) as Partial<TrendingResponse>;
-      if (hasContent(data)) {
-        return NextResponse.json(data, {
+      const data = (await res.json()) as TrendingApiResponse;
+      if (data?.listings?.length > 0) {
+        return NextResponse.json(normalizeTrendingResponse(data), {
           headers: {
             "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
           },
@@ -112,7 +182,7 @@ export async function GET(req: NextRequest) {
     // Fall through to local fallback response.
   }
 
-  return NextResponse.json(FALLBACK_TRENDING, {
+  return NextResponse.json(normalizeTrendingResponse(FALLBACK), {
     headers: {
       "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
       "X-ReFind-Fallback": "true",

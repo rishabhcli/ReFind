@@ -1,11 +1,16 @@
-"""Craigslist adapter — server-side HTML scrape, no JS needed."""
+"""Craigslist adapter using the current server-rendered search markup."""
 
+from __future__ import annotations
+
+import json
 import re
+
 import httpx
 from bs4 import BeautifulSoup
+
 from backend.models.schemas import ListingCandidate
 
-# Map ZIP prefixes / known ZIPs → Craigslist subdomain
+# Map ZIP prefixes / known ZIPs -> Craigslist subdomain
 ZIP_TO_CITY: dict[str, str] = {
     # New York
     "100": "newyork", "101": "newyork", "102": "newyork", "103": "newyork",
@@ -59,12 +64,25 @@ DEFAULT_CITY = "newyork"
 def _zip_to_city(zip_code: str) -> str:
     if not zip_code:
         return DEFAULT_CITY
-    # Try full 5-digit match first, then 3-digit prefix
     for length in (5, 4, 3):
         prefix = zip_code[:length]
         if prefix in ZIP_TO_CITY:
             return ZIP_TO_CITY[prefix]
     return DEFAULT_CITY
+
+
+def _extract_structured_results(soup: BeautifulSoup) -> list[dict]:
+    payload_el = soup.select_one("#ld_searchpage_results")
+    if not payload_el:
+        return []
+
+    try:
+        payload = json.loads(payload_el.get_text(strip=True))
+    except (TypeError, json.JSONDecodeError):
+        return []
+
+    items = payload.get("itemListElement", [])
+    return items if isinstance(items, list) else []
 
 
 async def search_craigslist(
@@ -74,7 +92,7 @@ async def search_craigslist(
 ) -> list[ListingCandidate]:
     """Scrape Craigslist for-sale listings."""
     city = _zip_to_city(zip_code)
-    params: dict = {"query": query, "sort": "date", "srchType": "T"}
+    params: dict[str, str] = {"query": query, "sort": "date", "srchType": "T"}
     if max_price > 0:
         params["max_price"] = str(int(max_price))
 
@@ -90,55 +108,93 @@ async def search_craigslist(
         html = resp.text
 
     soup = BeautifulSoup(html, "html.parser")
-    results = []
+    structured_items = _extract_structured_results(soup)
+    cards = soup.select("li.cl-static-search-result")
+    results: list[ListingCandidate] = []
 
-    for row in soup.select(".result-row")[:20]:
+    for index, card in enumerate(cards[:20]):
         try:
-            title_el = row.select_one(".result-title")
-            price_el = row.select_one(".result-price")
-            hood_el = row.select_one(".result-hood")
-            link_el = row.select_one("a.result-title")
-            img_el = row.select_one("a.result-image")
-
-            if not title_el or not price_el:
+            title_el = card.select_one(".title")
+            price_el = card.select_one(".price")
+            link_el = card.select_one("a[href]")
+            location_el = card.select_one(".location")
+            if not title_el or not price_el or not link_el:
                 continue
 
             title = title_el.get_text(strip=True)
             price_text = re.sub(r"[^\d.]", "", price_el.get_text(strip=True))
-            if not price_text:
+            if not title or not price_text:
                 continue
+
             price = float(price_text)
             if price <= 0:
                 continue
 
-            item_url = str(link_el["href"]) if link_el else ""
-            location = hood_el.get_text(strip=True).strip("() ") if hood_el else city
-            item_id = item_url.split("/")[-1].replace(".html", "") if item_url else ""
+            item_url = str(link_el["href"]).strip()
+            if not item_url:
+                continue
 
-            # Extract Craigslist image thumbnail
+            item_id_match = re.search(r"/(\d+)\.html", item_url)
+            item_id = item_id_match.group(1) if item_id_match else f"craigslist-{index}"
+            location = location_el.get_text(strip=True) if location_el else city
+
             image_urls: list[str] = []
-            if img_el and img_el.get("data-ids"):
-                raw_ids = str(img_el["data-ids"]).split(",")
-                if raw_ids:
-                    first = raw_ids[0]
-                    img_id = first.split(":")[-1] if ":" in first else first
-                    image_urls = [f"https://images.craigslist.org/{img_id}_300x300.jpg"]
+            lat = None
+            lng = None
+            structured_item = structured_items[index].get("item", {}) if index < len(structured_items) else {}
+            if isinstance(structured_item, dict):
+                images = structured_item.get("image", [])
+                if isinstance(images, list):
+                    image_urls = [
+                        str(image_url)
+                        for image_url in images
+                        if isinstance(image_url, str) and image_url.startswith("http")
+                    ]
 
-            results.append(ListingCandidate(
-                source="craigslist",
-                source_item_id=item_id,
-                url=item_url,
-                title=title,
-                price=price,
-                condition="good",   # Craigslist doesn't standardize condition
-                image_urls=image_urls,
-                description="",
-                seller_name="",
-                seller_rating=0.0,
-                location_text=location,
-                is_local_pickup=True,
-                is_shipped=False,
-            ))
+                offers = structured_item.get("offers", {})
+                if isinstance(offers, dict):
+                    place = offers.get("availableAtOrFrom", {})
+                    if isinstance(place, dict):
+                        address = place.get("address", {})
+                        if isinstance(address, dict) and not location:
+                            location = str(address.get("addressLocality", "")).strip() or city
+
+                        geo = place.get("geo", {})
+                        if isinstance(geo, dict):
+                            try:
+                                lat = float(geo.get("latitude")) if geo.get("latitude") is not None else None
+                                lng = float(geo.get("longitude")) if geo.get("longitude") is not None else None
+                            except (TypeError, ValueError):
+                                lat = None
+                                lng = None
+            
+            # Fallback to HTML if JSON-LD parsing missed the images
+            if not image_urls:
+                img_el = card.select_one("img")
+                if img_el and img_el.has_attr("src"):
+                    src = img_el["src"]
+                    if src.startswith("http"):
+                        image_urls.append(src)
+
+            results.append(
+                ListingCandidate(
+                    source="craigslist",
+                    source_item_id=item_id,
+                    url=item_url,
+                    title=title,
+                    price=price,
+                    condition="good",
+                    image_urls=image_urls,
+                    description="",
+                    seller_name="",
+                    seller_rating=0.0,
+                    location_text=location,
+                    lat=lat,
+                    lng=lng,
+                    is_local_pickup=True,
+                    is_shipped=False,
+                )
+            )
         except Exception:
             continue
 

@@ -23,11 +23,7 @@ CONDITION_ALIASES: dict[str, str] = {
 
 class ListingCandidate(BaseModel):
     """Unified listing shape — every adapter must return this."""
-<<<<<<< Updated upstream
     source: str                          # "ebay" | "mercari" | "craigslist" | "offerup" | "facebook" | "goodwill" | "poshmark"
-=======
-    source: str                          # "mercari" | "craigslist" | "offerup" | "facebook" | "goodwill"
->>>>>>> Stashed changes
     source_item_id: str
     url: str
     title: str
@@ -103,6 +99,20 @@ class ChatRequest(BaseModel):
     message: str
     thread_id: Optional[str] = None
     user_id: Optional[str] = None
+
+
+class NegotiateRequest(BaseModel):
+    """Request body for /api/negotiate."""
+    message: str = ""
+    thread_id: Optional[str] = None
+    user_id: Optional[str] = None
+    listing_id: str = ""
+    listing_url: str = ""
+    source: str = ""
+    action: str = "generate"  # "generate" | "send" | "check_reply"
+    message_override: Optional[str] = None
+    recommended_offer: float = 0.0
+    walk_away_price: float = 0.0
 
 
 class SSEEvent(BaseModel):
